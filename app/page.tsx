@@ -29,7 +29,7 @@ import UserMenuBar from '@/components/user-menubar';
 export default function Dashboard() {
   return (
     <div className='flex min-h-screen w-full flex-col'>
-      <header className='sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6'>
+      <header className='sticky z-10 top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6'>
         <NavBar />
         <div className='flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4'>
           <UserMenuBar />

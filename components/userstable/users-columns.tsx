@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { UserSchema } from '@/schemas';
 import { setStatus } from '@/actions/set-status';
 import { useRouter } from 'next/navigation';
+import { deleteUser } from '@/actions/delete-user';
 
 //Actions Column
 const ActionsCell = ({ row }: any) => {
@@ -21,13 +22,22 @@ const ActionsCell = ({ row }: any) => {
     router.refresh();
   };
 
+  const deleteUserHandler = async (user: any) => {
+    const { id } = user;
+    await deleteUser({ id, name: '', role: '', status: '' });
+    router.refresh();
+  };
+
   return (
     <div className='flox-row items-start'>
       <Button variant='ghost' size={'sm'} onClick={() => toggleStatus(user)}>
         Toggle Status
       </Button>
       <span>
-        <Button variant='ghost' size={'sm'}>
+        <Button
+          variant='danger'
+          size={'sm'}
+          onClick={() => deleteUserHandler(user)}>
           Delete
         </Button>
       </span>

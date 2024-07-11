@@ -46,8 +46,8 @@ export const columns: ColumnDef<PayList>[] = [
   },
   {
     accessorKey: 'amount',
-    header: () => <div className='text-right'>จำนวนเงิน</div>,
-    cell: ({ row }) => {
+    header: () => <div className='text-center'>จำนวนเงิน (บาท)</div>,
+    /*     cell: ({ row }) => {
       const amount = parseFloat(row.getValue('amount'));
       const formatted = new Intl.NumberFormat('th-TH', {
         style: 'currency',
@@ -55,6 +55,9 @@ export const columns: ColumnDef<PayList>[] = [
       }).format(amount);
 
       return <div className='text-right font-medium'>{formatted}</div>;
+    }, */
+    cell: ({ row }) => {
+      return <div className='text-right ml-5'>{row.getValue('amount')}</div>;
     },
   },
   {

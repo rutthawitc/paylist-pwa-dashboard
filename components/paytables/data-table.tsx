@@ -51,7 +51,7 @@ export function DataTable<TData, TValue>({
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     state: {
-      sorting,
+      //sorting,
       columnFilters,
       columnVisibility,
     },
@@ -59,6 +59,12 @@ export function DataTable<TData, TValue>({
       pagination: {
         pageSize: 15,
       },
+      sorting: [
+        {
+          id: 'upload_at',
+          desc: true,
+        },
+      ],
     },
   });
 

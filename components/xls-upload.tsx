@@ -152,7 +152,7 @@ const XlsUploadForm = () => {
     });
   };
 
-  //console.log('Preview', previewData);
+  console.log('Preview', previewData);
   let dataCount = previewData.length;
 
   const handleSave = async () => {
