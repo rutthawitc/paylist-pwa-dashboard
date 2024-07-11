@@ -3,7 +3,15 @@ import { getAllRecipientData } from '@/lib/recipient-data';
 import { columns } from '@/components/recipienttable/columns';
 import AddRecipientForm from '@/components/auth/addrecipient-form';
 
+import { auth } from '@/auth';
+import { redirect } from 'next/navigation';
+
 const RecipientName = async () => {
+  const session = await auth();
+  if (session?.user?.status !== 'active' || session?.user?.role !== 'admin') {
+    redirect('/403');
+  }
+
   const recipientData: any = await getAllRecipientData();
   return (
     <main className='flex flex-1 flex-col gap-4 p-4 lg:gap-2 lg:p-4'>

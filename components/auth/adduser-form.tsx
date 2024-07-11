@@ -33,6 +33,7 @@ import { FormError } from '@/components/form-error';
 import { FormSuccess } from '@/components/form-success';
 import { useState, useTransition } from 'react';
 import { adduser } from '@/actions/adduser';
+import { BackButton } from './back-button';
 
 export function AddUserForm() {
   const [error, setError] = useState<string | undefined>('');
@@ -150,7 +151,9 @@ export function AddUserForm() {
           </form>
         </Form>
       </CardContent>
-      <CardFooter>Back</CardFooter>
+      <CardFooter>
+        <BackButton href='/' label='Back' />
+      </CardFooter>
     </Card>
   );
 }

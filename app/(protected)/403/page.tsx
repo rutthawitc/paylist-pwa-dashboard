@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import Link from 'next/link';
 
 const Page = () => {
   return (
@@ -13,6 +14,10 @@ const Page = () => {
             </h3>
             <p className='text-sm text-muted-foreground'>
               ไม่สามารถใช้งานหน้านี้ได้ โปรดติดต่อผู้ดูแลระบบ
+            </p>
+            <hr />
+            <p className='text-sm  font-bold'>
+              <Link href='/'>กลับสู่หน้าหลัก</Link>
             </p>
           </div>
         </div>
