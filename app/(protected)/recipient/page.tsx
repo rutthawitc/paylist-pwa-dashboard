@@ -8,7 +8,10 @@ import { redirect } from 'next/navigation';
 
 const RecipientName = async () => {
   const session = await auth();
-  if (session?.user?.status !== 'active' || session?.user?.role !== 'admin') {
+  if (
+    session?.user?.status !== 'active' ||
+    (session?.user?.role !== 'admin' && session?.user?.role !== 'superuser')
+  ) {
     redirect('/403');
   }
 

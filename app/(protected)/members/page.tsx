@@ -8,7 +8,7 @@ import AddMemberForm from '@/components/auth/addmember-form';
 const MembersPage = async () => {
   const session = await auth();
   if (session?.user?.role !== 'admin') {
-    redirect('/auth/login');
+    redirect('/403');
   }
   const data: any = await getAllUsers();
   return (

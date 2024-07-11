@@ -4,7 +4,10 @@ import XlsUploadForm from '@/components/xls-upload';
 const UploadPage = async () => {
   const session = await auth();
   console.log(session);
-  if (session?.user?.status !== 'active' || session?.user?.role !== 'admin') {
+  if (
+    session?.user?.status !== 'active' ||
+    (session?.user?.role !== 'admin' && session?.user?.role !== 'superuser')
+  ) {
     redirect('/403');
   }
   return (
