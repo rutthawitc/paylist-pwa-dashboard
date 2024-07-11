@@ -8,7 +8,7 @@ export default {
     Credentials({
       async authorize(credentials) {
         const validatedFields = LoginSchema.safeParse(credentials);
-        console.log('AUTH:', validatedFields);
+        //console.log('AUTH:', validatedFields);
         if (validatedFields.success) {
           const response = await fetch(`${process.env.PWA_AUTH_URL}`, {
             method: 'POST',
@@ -19,7 +19,7 @@ export default {
             //console.log('USER id:', user.username.toString());
 
             const userRole: any = await getUserRole(user.username.toString());
-            console.log('Auth USER  Role:', userRole);
+            //console.log('Auth USER  Role:', userRole);
             const userStatus: any = await getUserStatus(
               user.username.toString()
             );

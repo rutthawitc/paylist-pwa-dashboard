@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import XlsUploadForm from '@/components/xls-upload';
 const UploadPage = async () => {
   const session = await auth();
-  console.log(session);
+  //console.log(session);
   if (session?.user?.status !== 'active') {
     redirect('/403');
   }
