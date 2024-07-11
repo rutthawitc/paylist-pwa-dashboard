@@ -26,8 +26,10 @@ import { FormError } from '@/components/form-error';
 import { FormSuccess } from '@/components/form-success';
 import { login } from '@/actions/login';
 import { useState, useTransition } from 'react';
+import { BackButton } from './back-button';
 
 export function LoginForm() {
+  const logoutUrl = process.env.LOGOUT_URL;
   const [error, setError] = useState<string | undefined>('');
   const [success, setSuccess] = useState<string | undefined>('');
   const [isPending, startTransition] = useTransition();
@@ -112,7 +114,9 @@ export function LoginForm() {
           </form>
         </Form>
       </CardContent>
-      <CardFooter>Back</CardFooter>
+      <CardFooter>
+        <BackButton href={logoutUrl || ''} label='Back' />
+      </CardFooter>
     </Card>
   );
 }

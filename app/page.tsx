@@ -48,7 +48,9 @@ export default function Dashboard() {
                 <PaylistTable />
               </CardContent>
               <CardFooter>
-                กองเทคโนโลยีสารสนเทศ งานประมวลข้อมูล กปภ.ข.๖
+                <p className='text-xs text-muted-foreground'>
+                  กองเทคโนโลยีสารสนเทศ งานประมวลข้อมูล กปภ.ข.๖
+                </p>
               </CardFooter>
             </Card>
           </div>

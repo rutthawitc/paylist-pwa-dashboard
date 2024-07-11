@@ -18,7 +18,7 @@ const Header = () => {
   const { data: session } = useSession();
   //console.log(session);
   const handleSignOut = async () => {
-    await signOut({ callbackUrl: process.env.LOGOUT_URL });
+    await signOut({ callbackUrl: '/dashboard' });
   };
 
   return (
