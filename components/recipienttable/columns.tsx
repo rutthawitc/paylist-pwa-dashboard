@@ -2,6 +2,31 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { RecipientSchema } from '@/schemas';
 import { formatDate } from '@/lib/helper-fnc';
+import { deleteRecipient } from '@/actions/delete-recipient';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+
+//Actions Column
+const ActionsCell = ({ row }: any) => {
+  const recipient = row.original;
+  const router = useRouter();
+  const deleteRecipientHandler = async (recipient: any) => {
+    const { id } = recipient;
+    await deleteRecipient({ id, short_name: '', full_name: '' });
+    router.refresh();
+  };
+
+  return (
+    <div className='flox-row items-start'>
+      <Button
+        variant='danger'
+        size={'sm'}
+        onClick={() => deleteRecipientHandler(recipient)}>
+        Delete
+      </Button>
+    </div>
+  );
+};
 
 export const columns: ColumnDef<typeof RecipientSchema>[] = [
   {
@@ -18,5 +43,10 @@ export const columns: ColumnDef<typeof RecipientSchema>[] = [
     cell: ({ row }) => {
       return formatDate(row.getValue('created_at'));
     },
+  },
+  {
+    id: 'actions',
+    header: () => <div className='text-left'>Actions</div>,
+    cell: (recipient) => <ActionsCell {...recipient} />,
   },
 ];
