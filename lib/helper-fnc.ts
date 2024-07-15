@@ -37,15 +37,6 @@ export function excelSerialNumberToDate(serialNumber: number): string {
   return `${day}/${month}/${year}`;
 }
 
-/* export function transformRowsData(rowsData: any[]): any[] {
-  return rowsData.map((row) => {
-    const newRow = [...row];
-    if (typeof row[3] === 'string' && row[3] in nameReplacements) {
-      newRow[3] = nameReplacements[row[3]];
-    }
-    return newRow;
-  });
-} */
 /**
  * Formats the given ISO string into "DD/MM/YYYY" format.
  *
