@@ -6,7 +6,7 @@ dayjs.locale('th');
 import buddhistEra from 'dayjs/plugin/buddhistEra';
 dayjs.extend(buddhistEra);
 
-import { nameReplacements } from '@/data/receiptname';
+//import { nameReplacements } from '@/data/receiptname';
 
 /**
  * Convert a number to Thai Baht format.
@@ -37,7 +37,7 @@ export function excelSerialNumberToDate(serialNumber: number): string {
   return `${day}/${month}/${year}`;
 }
 
-export function transformRowsData(rowsData: any[]): any[] {
+/* export function transformRowsData(rowsData: any[]): any[] {
   return rowsData.map((row) => {
     const newRow = [...row];
     if (typeof row[3] === 'string' && row[3] in nameReplacements) {
@@ -45,7 +45,7 @@ export function transformRowsData(rowsData: any[]): any[] {
     }
     return newRow;
   });
-}
+} */
 /**
  * Formats the given ISO string into "DD/MM/YYYY" format.
  *

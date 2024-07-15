@@ -18,7 +18,12 @@ export const authRoutes: string[] = ['/auth/login'];
  * these routes will require authentication
  * @type {string[]}
  */
-export const adminRoutes: string[] = ['/upload', '/usermgnt', '/members'];
+export const adminRoutes: string[] = [
+  '/upload',
+  '/recipient',
+  '/members',
+  '/dashboard',
+];
 
 /***
  * The prefix for API routes
@@ -32,4 +37,4 @@ export const apiPrefix: string = '/api/auth';
  * @type {string}
  */
 
-export const DEFAULT_LOGIN_REDIRECT: string = '/upload';
+export const DEFAULT_LOGIN_REDIRECT: string = '/dashboard';

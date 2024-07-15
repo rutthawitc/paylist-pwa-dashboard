@@ -32,7 +32,11 @@ export default auth((req): any => {
   }
 
   if (!isLogin && !isPublicRoute) {
-    return Response.redirect(new URL('/', nextUrl));
+    //return Response.redirect(new URL('/', nextUrl));
+    const returnTo = encodeURIComponent(nextUrl.pathname);
+    return Response.redirect(
+      new URL(`/auth/login?returnTo=${returnTo}`, nextUrl)
+    );
   }
   return null;
 });

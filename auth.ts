@@ -46,5 +46,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ...authConfig,
   session: {
     strategy: 'jwt',
+    maxAge: 60 * 15, // 15 นาที (หน่วยเป็นวินาที)
   },
+  secret: process.env.NEXTAUTH_SECRET,
 });

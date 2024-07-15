@@ -33,10 +33,9 @@ const Sidebar = () => {
         <div className='flex-1'>
           <MenuList />
         </div>
-
-        <div className='mt-auto p-4'>
+        <div className='mt-auto p-2'>
           <Card x-chunk='dashboard-02-chunk-0'>
-            <CardHeader className='p-2 pt-0 md:p-4'>
+            <CardHeader className='p-1 pt-0 md:p-2'>
               <CardTitle></CardTitle>
               <CardDescription></CardDescription>
             </CardHeader>

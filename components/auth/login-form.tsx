@@ -27,12 +27,15 @@ import { FormSuccess } from '@/components/form-success';
 import { login } from '@/actions/login';
 import { useState, useTransition } from 'react';
 import { BackButton } from './back-button';
+import { useSearchParams } from 'next/navigation';
 
 export function LoginForm() {
   const logoutUrl = process.env.LOGOUT_URL;
   const [error, setError] = useState<string | undefined>('');
   const [success, setSuccess] = useState<string | undefined>('');
   const [isPending, startTransition] = useTransition();
+  const searchParams = useSearchParams();
+  const returnTo = searchParams.get('returnTo');
 
   const form = useForm<z.infer<typeof LoginSchema>>({
     resolver: zodResolver(LoginSchema),
@@ -46,7 +49,7 @@ export function LoginForm() {
     setError('');
     setSuccess('');
     startTransition(() =>
-      login(values).then((data) => {
+      login(values, returnTo).then((data) => {
         if (data) {
           setError(data.error);
           setSuccess(data.success);
@@ -115,7 +118,7 @@ export function LoginForm() {
         </Form>
       </CardContent>
       <CardFooter>
-        <BackButton href={logoutUrl || ''} label='Back' />
+        <BackButton href={logoutUrl || '/'} label='Back' />
       </CardFooter>
     </Card>
   );

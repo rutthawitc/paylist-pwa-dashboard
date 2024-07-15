@@ -73,7 +73,7 @@ const AddRecipientForm = () => {
               name='short_name'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>ชื่อสั้น</FormLabel>
+                  <FormLabel>ชื่อสั้น/ชื่อที่ถูกตัด</FormLabel>
                   <FormControl>
                     <Input placeholder='ชื่อผู้รับ/ชื่อที่ถูกตัด' {...field} />
                   </FormControl>
@@ -86,7 +86,7 @@ const AddRecipientForm = () => {
               name='full_name'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>ชื่อสั้น</FormLabel>
+                  <FormLabel>ชื่อเต็มบริษัท/ชื่อผู้รับ</FormLabel>
                   <FormControl>
                     <Input placeholder='ชื่อเต็มผู้รับ' {...field} />
                   </FormControl>
