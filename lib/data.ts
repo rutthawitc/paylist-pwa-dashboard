@@ -15,6 +15,21 @@ export const getPayData = async () => {
     return [];
   }
 };
+
+/**
+ * Retrieves the record count from the database asynchronously.
+ *
+ * @return {Promise<number>} The count of records in the database.
+ */
+export const getAllRecordCount = async () => {
+  try {
+    const count = await db.payList.count();
+    return count;
+  } catch (error) {
+    console.log(error);
+    return 0;
+  }
+};
 /**
  * Returns a new Date object with only the year, month, and day components from the input date.
  *
@@ -67,6 +82,9 @@ export const getPayListSummary = async () => {
   const latestDate = new Date(latestUpload.upload_at);
   const latestDateOnly = getDateOnly(latestDate);
 
+  console.log('latestDate', latestDate);
+  console.log('latestDateOnly', latestDateOnly);
+
   // นับจำนวนรายการในวันล่าสุด
   const latestCount = await db.payList.count({
     where: {
@@ -107,6 +125,7 @@ export const getPayListSummary = async () => {
     latestUpload: {
       date: latestDateOnly.toISOString().split('T')[0], // เก็บเฉพาะวันที่ในรูปแบบ YYYY-MM-DD
       count: latestCount,
+      upload_date: latestDate.toISOString().split('T')[0], // เก็บเฉพาะวันที่ในรูปแบบ YYYY-MM-DD
     },
     monthlyCount,
     monthName,

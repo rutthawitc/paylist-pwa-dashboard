@@ -12,10 +12,11 @@ import {
 } from '@/components/ui/card';
 import { DataTable } from '@/components/paytables/data-table';
 import { columns } from '@/components/paytables/columns';
-import { getPayData } from '@/lib/data';
+import { getPayData, getAllRecordCount } from '@/lib/data';
 
 const DashBoardPage = async () => {
   const uploadInfo = await getPayListSummary();
+  const recordCount = await getAllRecordCount();
   const data: any = await getPayData();
 
   return (
@@ -38,8 +39,8 @@ const DashBoardPage = async () => {
           <CardContent>
             <div className='text-xs text-muted-foreground'>
               <span className='font-semibold'>วันที่อัปโหลดล่าสุดคือ:</span>{' '}
-              {uploadInfo.latestUpload?.date
-                ? uploadInfo.latestUpload?.date
+              {uploadInfo.latestUpload?.upload_date
+                ? uploadInfo.latestUpload?.upload_date
                 : 'No uploads yet'}
             </div>
           </CardContent>
@@ -55,10 +56,11 @@ const DashBoardPage = async () => {
           </CardHeader>
           <CardContent>
             <div className='text-xs text-muted-foreground'>
-              <span className='font-semibold'>เมื่อ:</span>{' '}
-              {/*      {uploadInfo.latestUploadDate
-                ? uploadInfo.latestUploadDate.toLocaleString()
-                : 'No uploads yet'} */}
+              <span className='font-semibold'>
+                จำนวนรายการทั้งหมดที่นำเข้าระบบ
+              </span>{' '}
+              {recordCount ? recordCount : 'No uploads yet'}{' '}
+              <span className='font-semibold'>รายการ</span>
             </div>
           </CardContent>
         </Card>
