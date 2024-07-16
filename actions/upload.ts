@@ -4,7 +4,7 @@ import { PaylistType } from '@/schemas';
 import { db } from '@/lib/db';
 
 export const uploadPaylist = async (values: PaylistType[]) => {
-  //console.log(values);
+  console.log(values);
   try {
     for (const item of values) {
       await db.payList.create({
