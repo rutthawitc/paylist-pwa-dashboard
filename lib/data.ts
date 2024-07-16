@@ -1,18 +1,32 @@
 import { db } from '@/lib/db';
 
+interface PayData {
+  unique_id: string | null;
+  doc_no: string | null;
+  trans_type: string | null;
+  due_date: string | null;
+  recipient: string | null;
+  amount: string | null;
+  upload_at: Date;
+}
+
 /**
  * Retrieves payment data from the database asynchronously.
  *
  * @return {Promise<PayData[]>} An array of payment data objects.
  */
-export const getPayData = async () => {
+export const getPayData = async (options?: {
+  cache: 'no-store';
+}): Promise<PayData[]> => {
   try {
+    await db.$connect(); // เพิ่มการเชื่อมต่อ DB ทุกครั้ง
     const payData = await db.payList.findMany();
-    //console.log(payData);
     return payData;
   } catch (error) {
     console.log(error);
     return [];
+  } finally {
+    await db.$disconnect();
   }
 };
 

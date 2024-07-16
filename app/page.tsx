@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { CircleUser, Menu, Package2, Search } from 'lucide-react';
 
+export const revalidate = 0; // เพิ่มบรรทัดนี้เพื่อปิดการ cache ของหน้านี้
+
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -10,17 +12,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 import PaylistTable from '@/components/paytables/paylist-table';
 import NavBar from '@/components/nav-bar';

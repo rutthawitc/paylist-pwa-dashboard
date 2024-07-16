@@ -1,6 +1,5 @@
-//import { getLastUploadandCount } from '@/lib/data';
 import { getPayListSummary } from '@/lib/data';
-import { db } from '@/lib/db';
+export const revalidate = 0;
 
 import {
   Card,
@@ -17,7 +16,8 @@ import { getPayData, getAllRecordCount } from '@/lib/data';
 const DashBoardPage = async () => {
   const uploadInfo = await getPayListSummary();
   const recordCount = await getAllRecordCount();
-  const data: any = await getPayData();
+  const data: any = await getPayData({ cache: 'no-store' });
+  console.log(data.length);
 
   return (
     <main className='flex flex-1 flex-col gap-4 p-4 lg:gap-2 lg:p-4'>

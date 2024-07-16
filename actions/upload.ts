@@ -17,7 +17,7 @@ export const uploadPaylist = async (values: PaylistType[]) => {
         },
       });
     }
-
+    console.log('Paylist uploaded successfully');
     return { success: 'Upload Success' };
   } catch (error) {
     console.error('Error uploading paylist:', error);
