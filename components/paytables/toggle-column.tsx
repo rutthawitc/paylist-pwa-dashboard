@@ -13,6 +13,8 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 
+import { formatString, translateField } from '@/lib/helper-fnc';
+
 interface DataTableViewOptionsProps<TData> {
   table: Table<TData>;
 }
@@ -47,7 +49,7 @@ export function DataTableViewOptions<TData>({
                 className='capitalize'
                 checked={column.getIsVisible()}
                 onCheckedChange={(value) => column.toggleVisibility(!!value)}>
-                {column.id}
+                {translateField(column.id)}
               </DropdownMenuCheckboxItem>
             );
           })}

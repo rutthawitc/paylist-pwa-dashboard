@@ -35,7 +35,7 @@ export const getPayData = async (options?: {
  *
  * @return {Promise<number>} The count of records in the database.
  */
-export const getAllRecordCount = async () => {
+export const getAllRecordCount = async (options?: { cache: 'no-store' }) => {
   try {
     const count = await db.payList.count();
     return count;
@@ -77,7 +77,7 @@ function getMonthName(date: Date): string {
  *
  * @return {Object} An object containing the latest upload date, count, the total monthly count, and the name of the month.
  */
-export const getPayListSummary = async () => {
+export const getPayListSummary = async (options?: { cache: 'no-store' }) => {
   await db.$disconnect();
   await db.$connect();
 

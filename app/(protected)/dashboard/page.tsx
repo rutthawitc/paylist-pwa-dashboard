@@ -14,8 +14,8 @@ import { columns } from '@/components/paytables/columns';
 import { getPayData, getAllRecordCount } from '@/lib/data';
 
 const DashBoardPage = async () => {
-  const uploadInfo = await getPayListSummary();
-  const recordCount = await getAllRecordCount();
+  const uploadInfo = await getPayListSummary({ cache: 'no-store' });
+  const recordCount = await getAllRecordCount({ cache: 'no-store' });
   const data: any = await getPayData({ cache: 'no-store' });
   console.log(data.length);
 
