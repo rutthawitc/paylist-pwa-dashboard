@@ -1,8 +1,9 @@
 'use client';
+import { revalidateUrl } from '@/actions/revalidate';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { string, z } from 'zod';
 import * as XLSX from 'xlsx';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -170,6 +171,7 @@ const XlsUploadForm = () => {
       setSaveMessage('An error occurred while saving the data');
     } finally {
       setIsSaving(false);
+      await revalidateUrl({ path: '/dashboard' }); // เรียกใช้ Server Action เพื่อ revalidate
     }
   };
 

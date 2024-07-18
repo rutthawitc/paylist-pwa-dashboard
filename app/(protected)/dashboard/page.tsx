@@ -1,5 +1,6 @@
 import { getPayListSummary } from '@/lib/data';
 export const revalidate = 0;
+export const dynamic = 'force-dynamic';
 
 import {
   Card,
