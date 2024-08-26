@@ -116,7 +116,8 @@ const XlsUploadForm = () => {
             uniqueID: uuidv4(),
             doc_no: row[0],
             trans_type: row[2],
-            due_date: excelSerialNumberToDate(parseInt(row[3] as string)),
+            //due_date: excelSerialNumberToDate(parseInt(row[3] as string)),
+            due_date: excelSerialNumberToDate(row[3]),
             recipient: row[5],
             amount: convertToThaiBaht(parseFloat(row[6] as string)),
           }));
@@ -245,7 +246,7 @@ const XlsUploadForm = () => {
           <Table>
             <TableHeader>
               <TableRow className='text-center font-semibold'>
-                <TableHead>เลขที่เอกสาร</TableHead>
+                <TableHead>เลขที่เช็ค</TableHead>
                 <TableHead>ประเภท</TableHead>
                 <TableHead>วันที่</TableHead>
                 <TableHead>ชื่อลูกค้า</TableHead>

@@ -21,7 +21,7 @@ export const columns: ColumnDef<PayList>[] = [
   }, */
   {
     accessorKey: 'doc_no',
-    header: 'หมายเลขเอกสาร',
+    header: 'เลขที่เช็ค',
     size: 100,
     minSize: 100,
     maxSize: 120,
