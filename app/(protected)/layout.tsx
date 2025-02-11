@@ -3,6 +3,8 @@ import Sidebar from '@/components/protected/sidebar';
 
 import { SessionProvider } from 'next-auth/react';
 import { Session } from 'next-auth';
+import { SessionWarning } from '@/components/session-warning';
+import { Toaster } from '@/components/ui/toaster';
 
 const ProtectedLayout = ({
   children,
@@ -20,6 +22,8 @@ const ProtectedLayout = ({
           {children}
         </div>
       </div>
+      <SessionWarning timeoutSeconds={300} />
+      <Toaster />
     </SessionProvider>
   );
 };
