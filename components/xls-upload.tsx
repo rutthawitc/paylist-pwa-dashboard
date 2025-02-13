@@ -57,6 +57,94 @@ const formSchema = z.object({
 
 type RowData = (string | number | null)[];
 
+interface AnonymizationConfig {
+  replacementChar: string;
+  firstNameChars: number;
+  lastNameChars: number;
+}
+
+const defaultConfig: AnonymizationConfig = {
+  replacementChar: '*',
+  firstNameChars: 4,
+  lastNameChars: 4,
+};
+
+const thaiPrefixes = [
+  'นาย',
+  'นาง',
+  'นางสาว',
+  'ด.ช.',
+  'ด.ญ.',
+  'เด็กชาย',
+  'เด็กหญิง',
+  'พล.ต.',
+  'พ.ต.',
+  'ร.ต.',
+  'พ.อ.',
+  'พ.ท.',
+  'ดร.',
+  'นพ.',
+  'พญ.',
+  'ศ.',
+  'รศ.',
+  'ผศ.',
+  'คุณ',
+];
+/**
+ * ฟังก์ชันสำหรับเปลี่ยนตัวอักษรในคำให้เป็นอักขระที่กำหนด
+ */
+function anonymizeWord(
+  word: string,
+  numChars: number,
+  config: AnonymizationConfig = defaultConfig
+): string {
+  // ถ้าคำมีความยาวน้อยกว่าหรือเท่ากับ 4 ตัวอักษร ให้เปลี่ยนแค่ตัวสุดท้าย
+  if (word.length <= 4) {
+    return word.slice(0, -1) + config.replacementChar;
+  }
+
+  // ถ้าคำมีความยาวน้อยกว่าหรือเท่ากับจำนวนที่ต้องการเปลี่ยน
+  if (word.length <= numChars) {
+    return config.replacementChar.repeat(word.length);
+  }
+
+  // เปลี่ยนตัวอักษรท้ายของคำตามจำนวนที่กำหนด
+  const visiblePart = word.slice(0, -numChars);
+  const anonymizedPart = config.replacementChar.repeat(numChars);
+  return visiblePart + anonymizedPart;
+}
+
+/**
+ * ฟังก์ชันหลักสำหรับการเปลี่ยนชื่อ-นามสกุลให้เป็นรูปแบบที่กำหนด
+ */
+function anonymizeThaiName(
+  fullName: string,
+  config: AnonymizationConfig = defaultConfig
+): string {
+  // แยกคำในชื่อ
+  const words: string[] = fullName.split(' ');
+
+  // ตรวจสอบว่าคำแรกเป็นคำนำหน้าหรือไม่
+  let startIndex: number = 0;
+  if (thaiPrefixes.some((prefix) => words[0].startsWith(prefix))) {
+    startIndex = 1; // ข้ามคำนำหน้า
+  }
+
+  // เปลี่ยนตัวอักษรในชื่อและนามสกุล
+  for (let i = startIndex; i < words.length; i++) {
+    const word = words[i];
+    if (i === startIndex) {
+      // ชื่อ
+      words[i] = anonymizeWord(word, config.firstNameChars, config);
+    } else {
+      // นามสกุล
+      words[i] = anonymizeWord(word, config.lastNameChars, config);
+    }
+  }
+
+  return words.join(' ');
+}
+
 const XlsUploadForm = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -117,7 +205,6 @@ const XlsUploadForm = () => {
             uniqueID: uuidv4(),
             doc_no: row[0],
             trans_type: row[2],
-            //due_date: excelSerialNumberToDate(parseInt(row[3] as string)),
             due_date: excelSerialNumberToDate(row[3]),
             recipient: row[5],
             amount: convertToThaiBaht(parseFloat(row[6] as string)),
@@ -147,20 +234,35 @@ const XlsUploadForm = () => {
 
     const updatedData = previewData.map((row) => {
       if (row.recipient) {
-        // ตรวจสอบว่าขึ้นต้นด้วย นาย หรือ นางสาว หรือไม่
-        if (
-          row.recipient.startsWith('นาย') ||
-          row.recipient.startsWith('นางสาว')
-        ) {
-          // แทนที่ตัวอักษรที่ 3 เป็น X
-          const chars = row.recipient.split('');
-          for (let i = 5; i < chars.length; i++) {
-            if (/[\u0E00-\u0E7F]/.test(chars[i])) {
-              // ตรวจสอบว่าเป็นตัวอักษรไทย
-              chars[i] = 'X';
-            }
-          }
-          return { ...row, recipient: chars.join('') };
+        // หาคำนำหน้าที่ตรงกับข้อความ
+        const matchedPrefix = thaiPrefixes.find((prefix) =>
+          row.recipient.startsWith(prefix)
+        );
+
+        if (matchedPrefix) {
+          // แยกส่วนที่เหลือหลังจากคำนำหน้า
+          const remainingPart = row.recipient
+            .slice(matchedPrefix.length)
+            .trim();
+
+          // แยกชื่อและนามสกุล
+          const [name, surname] = remainingPart.split(' ');
+
+          // เปลี่ยนเฉพาะชื่อและนามสกุล
+          const anonymizedName = name
+            ? anonymizeWord(name, defaultConfig.firstNameChars)
+            : '';
+          const anonymizedSurname = surname
+            ? anonymizeWord(surname, defaultConfig.lastNameChars)
+            : '';
+
+          // รวมคำกลับเข้าด้วยกัน
+          return {
+            ...row,
+            recipient: [matchedPrefix, anonymizedName, anonymizedSurname]
+              .filter(Boolean)
+              .join(' '),
+          };
         }
       }
       return row;
@@ -168,8 +270,8 @@ const XlsUploadForm = () => {
 
     setPreviewData(updatedData);
     toast({
-      title: "PDPA Check",
-      description: "ตรวจสอบและปรับปรุงข้อมูล PDPA เรียบร้อยแล้ว",
+      title: 'PDPA Check',
+      description: 'ตรวจสอบและปรับปรุงข้อมูล PDPA เรียบร้อยแล้ว',
       duration: 3000,
     });
   };
@@ -243,9 +345,6 @@ const XlsUploadForm = () => {
           <Button type='submit' className='mt-4'>
             ตรวจสอบข้อมูล
           </Button>
-          <Button onClick={handleSave} disabled={isSaving} className='mt-4'>
-            {isSaving ? 'กำลังบันทึก...' : 'บันทึกข้อมูล'}
-          </Button>
           <Button
             type='button'
             onClick={handlePDPACheck}
@@ -253,6 +352,10 @@ const XlsUploadForm = () => {
             className='mt-4'>
             PDPA Check
           </Button>
+          <Button onClick={handleSave} disabled={isSaving} className='mt-4'>
+            {isSaving ? 'กำลังบันทึก...' : 'บันทึกข้อมูล'}
+          </Button>
+
           <LineNotifyButton
             messageCount={dataCount}
             onNotificationResult={handleNotificationResult}
