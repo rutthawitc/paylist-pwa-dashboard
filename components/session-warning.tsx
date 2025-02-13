@@ -16,31 +16,21 @@ export function SessionWarning({ timeoutSeconds }: { timeoutSeconds: number }) {
     
     // แจ้งเตือนก่อน timeout 1 นาที
     const warningTimer = setTimeout(() => {
-      toast({
+      const warningToast = toast({
         title: "แจ้งเตือนการหมดเวลา Session",
-        description: "Session จะหมดเวลาในอีก 1 นาที",
+        description: "Session จะหมดเวลาในอีก 1 นาที กรุณาบันทึกข้อมูลที่ทำงานอยู่",
         variant: "destructive",
+        duration: Infinity, // ทำให้ toast ไม่หายไปอัตโนมัติ
         action: (
-          <Button 
-            variant="default"
-            className="bg-black hover:bg-black/90 text-white"
-            onClick={async () => {
-              try {
-                const response = await fetch('/api/auth/session', { method: 'PUT' });
-                if (response.ok) {
-                  window.location.reload();
-                } else {
-                  throw new Error('Failed to renew session');
-                }
-              } catch (error) {
-                console.error('Session renewal failed:', error);
-                await signOut({ redirect: false });
-                router.push('/auth/login');
-              }
-            }}
-          >
-            ต่ออายุ Session
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              variant="default"
+              className="bg-black hover:bg-black/90 text-white"
+              onClick={() => warningToast.dismiss()}
+            >
+              รับทราบ
+            </Button>
+          </div>
         )
       });
     }, warningTime);
@@ -48,7 +38,7 @@ export function SessionWarning({ timeoutSeconds }: { timeoutSeconds: number }) {
     // logout และ redirect เมื่อ timeout
     const timeoutTimer = setTimeout(async () => {
       await signOut({ redirect: false });
-      router.push('/auth/login');
+      window.location.href = '/auth/login';
     }, timeoutTime);
 
     return () => {
