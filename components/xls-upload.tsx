@@ -33,6 +33,7 @@ import {
 } from '@/components/ui/table';
 import { FormError } from '@/components/form-error';
 import { FormSuccess } from '@/components/form-success';
+import { useToast } from '@/components/ui/use-toast';
 
 const MAX_FILE_SIZE = 10000000; // 10MB
 const ACCEPTED_FILE_TYPES = [
@@ -135,6 +136,44 @@ const XlsUploadForm = () => {
       processFile();
     }
   }, [fileData]);
+
+  const { toast } = useToast();
+
+  const handlePDPACheck = () => {
+    if (!previewData || previewData.length === 0) {
+      setError('ไม่พบข้อมูลที่จะตรวจสอบ PDPA');
+      return;
+    }
+
+    const updatedData = previewData.map((row) => {
+      if (row.recipient) {
+        // ตรวจสอบว่าขึ้นต้นด้วย นาย หรือ นางสาว หรือไม่
+        if (
+          row.recipient.startsWith('นาย') ||
+          row.recipient.startsWith('นางสาว')
+        ) {
+          // แทนที่ตัวอักษรที่ 3 เป็น X
+          const chars = row.recipient.split('');
+          for (let i = 5; i < chars.length; i++) {
+            if (/[\u0E00-\u0E7F]/.test(chars[i])) {
+              // ตรวจสอบว่าเป็นตัวอักษรไทย
+              chars[i] = 'X';
+            }
+          }
+          return { ...row, recipient: chars.join('') };
+        }
+      }
+      return row;
+    });
+
+    setPreviewData(updatedData);
+    toast({
+      title: "PDPA Check",
+      description: "ตรวจสอบและปรับปรุงข้อมูล PDPA เรียบร้อยแล้ว",
+      duration: 3000,
+    });
+  };
+
   /**
    * Reads the contents of the provided File as an ArrayBuffer.
    *
@@ -206,6 +245,13 @@ const XlsUploadForm = () => {
           </Button>
           <Button onClick={handleSave} disabled={isSaving} className='mt-4'>
             {isSaving ? 'กำลังบันทึก...' : 'บันทึกข้อมูล'}
+          </Button>
+          <Button
+            type='button'
+            onClick={handlePDPACheck}
+            disabled={!previewData || previewData.length === 0}
+            className='mt-4'>
+            PDPA Check
           </Button>
           <LineNotifyButton
             messageCount={dataCount}
