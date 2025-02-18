@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { DatabaseConnectionError } from './exceptions';
 
 interface PayData {
   unique_id: string | null;
@@ -23,8 +24,8 @@ export const getPayData = async (options?: {
     const payData = await db.payList.findMany();
     return payData;
   } catch (error) {
-    console.log(error);
-    return [];
+    console.error('Database connection error:', error);
+    throw new DatabaseConnectionError();
   } finally {
     await db.$disconnect();
   }
@@ -37,11 +38,14 @@ export const getPayData = async (options?: {
  */
 export const getAllRecordCount = async (options?: { cache: 'no-store' }) => {
   try {
+    await db.$connect();
     const count = await db.payList.count();
     return count;
   } catch (error) {
-    console.log(error);
-    return 0;
+    console.error('Database connection error:', error);
+    throw new DatabaseConnectionError();
+  } finally {
+    await db.$disconnect();
   }
 };
 /**
@@ -78,70 +82,77 @@ function getMonthName(date: Date): string {
  * @return {Object} An object containing the latest upload date, count, the total monthly count, and the name of the month.
  */
 export const getPayListSummary = async (options?: { cache: 'no-store' }) => {
-  await db.$disconnect();
-  await db.$connect();
+  try {
+    await db.$disconnect();
+    await db.$connect();
 
-  const latestUploads = await db.payList.findMany({
-    orderBy: {
-      upload_at: 'desc',
-    },
-    take: 1,
-  });
+    const latestUploads = await db.payList.findMany({
+      orderBy: {
+        upload_at: 'desc',
+      },
+      take: 1,
+    });
 
-  if (latestUploads.length === 0) {
-    return { latestUpload: null, monthlyCount: 0, monthName: '' };
+    if (latestUploads.length === 0) {
+      return { latestUpload: null, monthlyCount: 0, monthName: '' };
+    }
+
+    const latestUpload = latestUploads[0];
+    const latestDate = new Date(latestUpload.upload_at);
+    const latestDateOnly = getDateOnly(latestDate);
+
+    console.log('latestDate', latestDate);
+    console.log('latestDateOnly', latestDateOnly);
+
+    // นับจำนวนรายการในวันล่าสุด
+    const latestCount = await db.payList.count({
+      where: {
+        upload_at: {
+          gte: latestDateOnly,
+          lt: new Date(latestDateOnly.getTime() + 24 * 60 * 60 * 1000), // วันถัดไป
+        },
+      },
+    });
+
+    // จำนวน record ที่นำเข้าทั้งหมด ณ เดือนนั้น
+    const monthStart = new Date(
+      latestDate.getFullYear(),
+      latestDate.getMonth(),
+      1
+    );
+    const monthEnd = new Date(
+      latestDate.getFullYear(),
+      latestDate.getMonth() + 1,
+      0,
+      23,
+      59,
+      59
+    );
+
+    const monthlyCount = await db.payList.count({
+      where: {
+        upload_at: {
+          gte: monthStart,
+          lte: monthEnd,
+        },
+      },
+    });
+
+    const monthName = getMonthName(latestDate);
+
+    return {
+      latestUpload: {
+        date: latestDateOnly.toISOString().split('T')[0], // เก็บเฉพาะวันที่ในรูปแบบ YYYY-MM-DD
+        count: latestCount,
+        upload_date: latestDate.toISOString().split('T')[0], // เก็บเฉพาะวันที่ในรูปแบบ YYYY-MM-DD
+      },
+      monthlyCount,
+      monthName,
+    };
+  } catch (error) {
+    console.error('Database connection error:', error);
+    throw new DatabaseConnectionError();
+  } finally {
+    await db.$disconnect();
   }
-
-  const latestUpload = latestUploads[0];
-  const latestDate = new Date(latestUpload.upload_at);
-  const latestDateOnly = getDateOnly(latestDate);
-
-  console.log('latestDate', latestDate);
-  console.log('latestDateOnly', latestDateOnly);
-
-  // นับจำนวนรายการในวันล่าสุด
-  const latestCount = await db.payList.count({
-    where: {
-      upload_at: {
-        gte: latestDateOnly,
-        lt: new Date(latestDateOnly.getTime() + 24 * 60 * 60 * 1000), // วันถัดไป
-      },
-    },
-  });
-
-  // จำนวน record ที่นำเข้าทั้งหมด ณ เดือนนั้น
-  const monthStart = new Date(
-    latestDate.getFullYear(),
-    latestDate.getMonth(),
-    1
-  );
-  const monthEnd = new Date(
-    latestDate.getFullYear(),
-    latestDate.getMonth() + 1,
-    0,
-    23,
-    59,
-    59
-  );
-
-  const monthlyCount = await db.payList.count({
-    where: {
-      upload_at: {
-        gte: monthStart,
-        lte: monthEnd,
-      },
-    },
-  });
-
-  const monthName = getMonthName(latestDate);
-
-  return {
-    latestUpload: {
-      date: latestDateOnly.toISOString().split('T')[0], // เก็บเฉพาะวันที่ในรูปแบบ YYYY-MM-DD
-      count: latestCount,
-      upload_date: latestDate.toISOString().split('T')[0], // เก็บเฉพาะวันที่ในรูปแบบ YYYY-MM-DD
-    },
-    monthlyCount,
-    monthName,
-  };
 };
