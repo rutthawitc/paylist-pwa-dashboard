@@ -15,6 +15,7 @@ model PayList {
   recipient  String?
   amount     String?
   upload_at  DateTime @default(now())
+  area       String?
 }
 
 model Users {

@@ -2,10 +2,14 @@
 
 import { PaylistType } from '@/schemas';
 import { db } from '@/lib/db';
+import { auth } from '@/auth';
 
 export const uploadPaylist = async (values: PaylistType[]) => {
   console.log(values);
   try {
+    const session = await auth();
+    const userArea = session?.user?.area || '';
+
     for (const item of values) {
       await db.payList.create({
         data: {
@@ -14,6 +18,7 @@ export const uploadPaylist = async (values: PaylistType[]) => {
           due_date: item.due_date,
           recipient: item.recipient,
           amount: item.amount,
+          area: userArea,
         },
       });
     }
