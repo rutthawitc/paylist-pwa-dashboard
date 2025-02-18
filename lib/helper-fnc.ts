@@ -100,6 +100,7 @@ export function translateField(fieldName: string): string {
     recipient: 'ผู้รับ',
     amount: 'จำนวนเงิน',
     upload_at: 'วันที่นำเข้าข้อมูล',
+    area: 'เขต',
   };
 
   return translations[fieldName] || fieldName;

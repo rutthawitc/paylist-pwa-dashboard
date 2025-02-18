@@ -12,6 +12,7 @@ export type PayList = {
   recipient: string;
   amount: string;
   upload_at: Date;
+  area: string;
 };
 
 export const columns: ColumnDef<PayList>[] = [
@@ -70,5 +71,9 @@ export const columns: ColumnDef<PayList>[] = [
       const date: string = row.getValue('upload_at');
       return <div className='text-center'>{formatDate(date)}</div>;
     },
+  },
+  {
+    accessorKey: 'area',
+    header: 'เขต',
   },
 ];

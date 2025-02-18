@@ -1,16 +1,18 @@
+//components/paytables/data-table.tsx
+
 'use client';
 
 import {
   ColumnDef,
+  ColumnFiltersState,
+  SortingState,
+  VisibilityState,
   flexRender,
   getCoreRowModel,
-  getPaginationRowModel,
-  useReactTable,
-  getSortedRowModel,
-  SortingState,
-  ColumnFiltersState,
   getFilteredRowModel,
-  VisibilityState,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
 } from '@tanstack/react-table';
 
 import {
@@ -23,7 +25,14 @@ import {
 } from '@/components/ui/table';
 
 import { Input } from '@/components/ui/input';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { DataTablePagination } from './paginations';
 import { DataTableViewOptions } from './toggle-column';
 
@@ -39,6 +48,8 @@ export function DataTable<TData, TValue>({
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [selectedArea, setSelectedArea] = useState<string>('');
+
   const table = useReactTable({
     data,
     columns,
@@ -50,39 +61,57 @@ export function DataTable<TData, TValue>({
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     state: {
-      //sorting,
+      sorting,
       columnFilters,
       columnVisibility,
     },
-    initialState: {
-      pagination: {
-        pageSize: 15,
-      },
-      sorting: [
-        {
-          id: 'upload_at',
-          desc: true,
-        },
-      ],
-    },
   });
+
+  // Filter data when area is selected
+  useEffect(() => {
+    if (selectedArea && selectedArea !== 'all') {
+      table.getColumn('area')?.setFilterValue(selectedArea);
+    } else {
+      table.getColumn('area')?.setFilterValue('');
+    }
+  }, [selectedArea, table]);
 
   return (
     <div>
-      <div className='flex items-center py-4'>
+      <div className="flex items-center py-4 gap-2">
         <Input
-          placeholder='ค้นหาจากชื่อผู้รับ'
-          value={
-            (table.getColumn('recipient')?.getFilterValue() as string) ?? ''
-          }
+          placeholder="ค้นหาจากชื่อผู้รับ"
+          value={(table.getColumn('recipient')?.getFilterValue() as string) ?? ''}
           onChange={(event) =>
             table.getColumn('recipient')?.setFilterValue(event.target.value)
           }
-          className='max-w-sm'
+          className="max-w-sm"
         />
+        <Select
+          value={selectedArea}
+          onValueChange={(value) => {
+            setSelectedArea(value);
+            // ถ้าเลือก "all" ให้ clear filter
+            if (value === 'all') {
+              table.getColumn('area')?.setFilterValue('');
+            }
+          }}
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="เลือกเขต" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">ทั้งหมด</SelectItem>
+            {Array.from({ length: 10 }, (_, i) => i + 1).map((area) => (
+              <SelectItem key={area} value={area.toString()}>
+                เขต {area}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <DataTableViewOptions table={table} />
       </div>
-      <div className='rounded-md border'>
+      <div className="rounded-md border">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -107,7 +136,8 @@ export function DataTable<TData, TValue>({
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
-                  data-state={row.getIsSelected() && 'selected'}>
+                  data-state={row.getIsSelected() && 'selected'}
+                >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(
@@ -122,15 +152,16 @@ export function DataTable<TData, TValue>({
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className='h-24 text-center'>
-                  No results.
+                  className="h-24 text-center"
+                >
+                  ไม่พบข้อมูล
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
       </div>
-      <div className='flex items-center justify-end space-x-2 py-4'>
+      <div className="flex items-center justify-end space-x-2 py-4">
         <DataTablePagination table={table} />
       </div>
     </div>
