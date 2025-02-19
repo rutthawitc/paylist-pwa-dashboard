@@ -1,5 +1,6 @@
 import { db } from '@/lib/db';
 import { DatabaseConnectionError } from './exceptions';
+import { auth } from '@/auth';
 
 interface PayData {
   unique_id: string | null;
@@ -86,7 +87,15 @@ export const getPayListSummary = async (options?: { cache: 'no-store' }) => {
     await db.$disconnect();
     await db.$connect();
 
+    // Get user's area from session
+    const session = await auth();
+    const userArea = session?.user?.area || '';
+
+    // Add area filter if user has area
+    const areaFilter = userArea ? { area: userArea } : {};
+
     const latestUploads = await db.payList.findMany({
+      where: areaFilter,
       orderBy: {
         upload_at: 'desc',
       },
@@ -101,12 +110,10 @@ export const getPayListSummary = async (options?: { cache: 'no-store' }) => {
     const latestDate = new Date(latestUpload.upload_at);
     const latestDateOnly = getDateOnly(latestDate);
 
-    console.log('latestDate', latestDate);
-    console.log('latestDateOnly', latestDateOnly);
-
-    // นับจำนวนรายการในวันล่าสุด
+    // นับจำนวนรายการในวันล่าสุด (เฉพาะ area ของ user)
     const latestCount = await db.payList.count({
       where: {
+        ...areaFilter,
         upload_at: {
           gte: latestDateOnly,
           lt: new Date(latestDateOnly.getTime() + 24 * 60 * 60 * 1000), // วันถัดไป
@@ -114,7 +121,7 @@ export const getPayListSummary = async (options?: { cache: 'no-store' }) => {
       },
     });
 
-    // จำนวน record ที่นำเข้าทั้งหมด ณ เดือนนั้น
+    // จำนวน record ที่นำเข้าทั้งหมด ณ เดือนนั้น (เฉพาะ area ของ user)
     const monthStart = new Date(
       latestDate.getFullYear(),
       latestDate.getMonth(),
@@ -131,6 +138,7 @@ export const getPayListSummary = async (options?: { cache: 'no-store' }) => {
 
     const monthlyCount = await db.payList.count({
       where: {
+        ...areaFilter,
         upload_at: {
           gte: monthStart,
           lte: monthEnd,
@@ -142,9 +150,9 @@ export const getPayListSummary = async (options?: { cache: 'no-store' }) => {
 
     return {
       latestUpload: {
-        date: latestDateOnly.toISOString().split('T')[0], // เก็บเฉพาะวันที่ในรูปแบบ YYYY-MM-DD
+        date: latestDateOnly.toISOString().split('T')[0],
         count: latestCount,
-        upload_date: latestDate.toISOString().split('T')[0], // เก็บเฉพาะวันที่ในรูปแบบ YYYY-MM-DD
+        upload_date: latestDate.toISOString().split('T')[0],
       },
       monthlyCount,
       monthName,

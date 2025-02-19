@@ -42,11 +42,23 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.user = token.user as ExtendedUser & DefaultSession['user'];
       return session;
     },
+    async signIn({ user, account, profile }) {
+      try {
+        return true;
+      } catch (error: any) {
+        if (error.code === 'ECONNRESET') {
+          console.error('Connection reset error during sign in:', error);
+          // อาจจะเพิ่ม logging หรือ monitoring ตรงนี้
+          return false;
+        }
+        throw error;
+      }
+    }
   },
   ...authConfig,
   session: {
     strategy: 'jwt',
     maxAge: 60 * 5, // 5 นาที (หน่วยเป็นวินาที)
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET
 });
