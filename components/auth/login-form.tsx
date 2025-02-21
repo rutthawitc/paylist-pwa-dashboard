@@ -16,7 +16,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Lock } from 'lucide-react';
+import { Lock, ChevronLeft } from 'lucide-react';
 
 interface LoginFormProps {
   onSubmit: (values: z.infer<typeof LoginSchema>) => Promise<void>;
@@ -83,7 +83,9 @@ export const LoginForm = ({ onSubmit }: LoginFormProps) => {
             name='pwd'
             render={({ field }) => (
               <FormItem>
-                <FormLabel className='text-sm font-normal'>รหัสผ่าน</FormLabel>
+                <FormLabel className='text-sm font-normal'>
+                  รหัสผ่าน (PWA Intranet)
+                </FormLabel>
                 <FormControl>
                   <Input
                     {...field}
@@ -111,6 +113,7 @@ export const LoginForm = ({ onSubmit }: LoginFormProps) => {
               variant='link'
               className='text-gray-800 text-sm font-normal'
               onClick={() => window.history.back()}>
+              <ChevronLeft className='w-5 h-5 text-gray-800' />
               Back
             </Button>
           </div>
