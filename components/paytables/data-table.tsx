@@ -49,6 +49,35 @@ export function DataTable<TData, TValue>({
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [selectedArea, setSelectedArea] = useState<string>('');
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Handle responsive behavior
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      
+      // Update column visibility based on screen size
+      const newVisibility: VisibilityState = {};
+      columns.forEach((col: any) => {
+        if (mobile && col.meta?.isHiddenOnMobile) {
+          newVisibility[col.accessorKey] = false;
+        } else {
+          newVisibility[col.accessorKey] = true;
+        }
+      });
+      setColumnVisibility(newVisibility);
+    };
+
+    // Initial check
+    handleResize();
+
+    // Add event listener
+    window.addEventListener('resize', handleResize);
+
+    // Cleanup
+    return () => window.removeEventListener('resize', handleResize);
+  }, [columns]);
 
   const table = useReactTable({
     data,
@@ -77,7 +106,7 @@ export function DataTable<TData, TValue>({
   }, [selectedArea, table]);
 
   return (
-    <div>
+    <div className="w-full overflow-auto">
       <div className="flex items-center py-4 gap-2">
         <Input
           placeholder="ค้นหาจากชื่อผู้รับ"
@@ -87,29 +116,31 @@ export function DataTable<TData, TValue>({
           }
           className="max-w-sm"
         />
-        <Select
-          value={selectedArea}
-          onValueChange={(value) => {
-            setSelectedArea(value);
-            // ถ้าเลือก "all" ให้ clear filter
-            if (value === 'all') {
-              table.getColumn('area')?.setFilterValue('');
-            }
-          }}
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="เลือกเขต" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">ทั้งหมด</SelectItem>
-            {Array.from({ length: 10 }, (_, i) => i + 1).map((area) => (
-              <SelectItem key={area} value={area.toString()}>
-                เขต {area}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <DataTableViewOptions table={table} />
+        {!isMobile && (
+          <Select
+            value={selectedArea}
+            onValueChange={(value) => {
+              setSelectedArea(value);
+              // ถ้าเลือก "all" ให้ clear filter
+              if (value === 'all') {
+                table.getColumn('area')?.setFilterValue('');
+              }
+            }}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="เลือกเขต" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">ทั้งหมด</SelectItem>
+              {Array.from({ length: 10 }, (_, i) => i + 1).map((area) => (
+                <SelectItem key={area} value={area.toString()}>
+                  เขต {area}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+        {!isMobile && <DataTableViewOptions table={table} />}
       </div>
       <div className="rounded-md border">
         <Table>

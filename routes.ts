@@ -23,6 +23,7 @@ export const adminRoutes: string[] = [
   '/recipient',
   '/members',
   '/dashboard',
+  '/audit-logs', // เพิ่ม audit-logs route
 ];
 
 /***
@@ -30,7 +31,7 @@ export const adminRoutes: string[] = [
  * Routes that start with this prefix will be handled by the API
  * @type {string}
  */
-export const apiPrefix: string = '/api/auth';
+export const apiPrefix: string = '/api'; // แก้ไขให้ครอบคลุม API routes ทั้งหมด
 
 /***
  * The default redirect after login

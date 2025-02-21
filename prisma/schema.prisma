@@ -34,3 +34,18 @@ model Companyname {
 
   @@map("companyname")
 }
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String   // เช่น CREATE, UPDATE, DELETE
+  resource  String   // เช่น PayList, Users
+  details   Json?    // เก็บข้อมูลเพิ่มเติม เช่น old value, new value
+  ipAddress String?  // เก็บ IP address ของผู้ใช้
+  userAgent String?  // เก็บข้อมูล browser/device
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([resource])
+  @@index([createdAt])
+}

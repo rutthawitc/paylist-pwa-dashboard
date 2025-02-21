@@ -1,11 +1,14 @@
-import NextAuth, { DefaultSession, User, Account, Profile } from 'next-auth';
+import NextAuth, { DefaultSession, User as NextAuthUser } from 'next-auth';
+import { AdapterUser } from 'next-auth/adapters';
 import authConfig from '@/auth.config';
 import { JWT } from 'next-auth/jwt';
 
 // กำหนดประเภทข้อมูลเพิ่มเติมสำหรับ user
-interface ExtendedUser extends User {
+interface ExtendedUser extends NextAuthUser {
   firstname?: string;
   lastname?: string;
+  full_name?: string;
+  email?: string;
   costcenter?: string;
   ba?: string;
   part?: string;
@@ -18,7 +21,9 @@ interface ExtendedUser extends User {
   position?: string;
   role?: string;
   status?: string;
+  emailVerified?: Date | null;
 }
+
 // ขยาย Session type
 declare module 'next-auth' {
   interface Session {
@@ -26,39 +31,22 @@ declare module 'next-auth' {
   }
 }
 
+// ขยาย JWT type
+declare module 'next-auth/jwt' {
+  interface JWT {
+    user?: ExtendedUser;
+  }
+}
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  ...authConfig,
   pages: {
     signIn: '/auth/login',
     signOut: '/',
   },
-  callbacks: {
-    async jwt({ token, user }: { token: JWT; user?: ExtendedUser }) {
-      if (user) {
-        token.user = user;
-      }
-      return token;
-    },
-    async session({ session, token }: { session: any; token: JWT }) {
-      session.user = token.user as ExtendedUser & DefaultSession['user'];
-      return session;
-    },
-    async signIn({ user, account, profile }) {
-      try {
-        return true;
-      } catch (error: any) {
-        if (error.code === 'ECONNRESET') {
-          console.error('Connection reset error during sign in:', error);
-          // อาจจะเพิ่ม logging หรือ monitoring ตรงนี้
-          return false;
-        }
-        throw error;
-      }
-    }
-  },
-  ...authConfig,
   session: {
     strategy: 'jwt',
-    maxAge: 60 * 5, // 5 นาที (หน่วยเป็นวินาที)
+    maxAge: 60 * 60, // 1 ชั่วโมง
   },
   secret: process.env.NEXTAUTH_SECRET
 });
