@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { createAuditLog } from '@/lib/audit-logger';
 import axios, { AxiosResponse } from 'axios';
+import { NotificationSetting } from '@prisma/client';
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const body: { 

@@ -1,4 +1,5 @@
 import NextAuth, { DefaultSession, User as NextAuthUser } from 'next-auth';
+import { JWT } from 'next-auth/jwt';
 import authConfig from '@/auth.config';
 
 
@@ -45,7 +46,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
   session: {
     strategy: 'jwt',
-    maxAge: 3 * 60 * 60, // 3 ชั่วโมง
+    maxAge: 45 * 60, // 45 นาที (เดิม 3 ชั่วโมง)
   },
   secret: process.env.NEXTAUTH_SECRET
 });

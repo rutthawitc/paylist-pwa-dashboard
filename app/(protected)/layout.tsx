@@ -43,6 +43,9 @@ function ProtectedContent({ children }: { children: React.ReactNode }) {
     // เช็ค session ทุก 1 นาที
     const sessionCheckInterval = setInterval(checkSession, 60 * 1000);
 
+    // บันทึก log เพื่อตรวจสอบการตั้งค่า
+    console.log('Session check interval initialized - checking every 1 minute');
+
     return () => {
       clearInterval(sessionCheckInterval);
     };
@@ -77,7 +80,8 @@ const ProtectedLayout = ({
   return (
     <SessionProvider session={session}>
       <ProtectedContent>{children}</ProtectedContent>
-      <SessionWarning timeoutSeconds={300} />
+      {/* Session timeout ตั้งค่าให้หมดอายุใน 45 นาที (2700 วินาที) */}
+      <SessionWarning timeoutSeconds={2700} />
       <Toaster />
     </SessionProvider>
   );
