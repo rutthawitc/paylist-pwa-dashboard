@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAuditLogs } from '@/lib/audit-logger';
 import { auth } from '@/auth';
 
+// ระบุให้ route นี้เป็น dynamic เพื่อแก้ไขปัญหา build
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();

@@ -360,12 +360,12 @@ const XlsUploadForm = () => {
           <LineNotifyButton
             messageCount={dataCount}
             onNotificationResult={handleNotificationResult}
-            area="ข้อมูลจาก Excel"
+            area='Line Notify'
           />
           <TelegramNotifyButton
             messageCount={dataCount}
             onNotificationResult={handleNotificationResult}
-            area="ข้อมูลจาก Excel"
+            area='Telegram'
           />
           {notificationStatus && (
             <p

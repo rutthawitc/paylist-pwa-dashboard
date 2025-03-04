@@ -1,7 +1,7 @@
 //app/audit-logs/page.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { AuditLogTable } from '@/components/audit/audit-log-table';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -41,7 +41,7 @@ export default function AuditLogsPage() {
     endDate: '',
   });
 
-  const fetchLogs = async () => {
+  const fetchLogs = useCallback(async () => {
     try {
       setLoading(true);
       const queryParams = new URLSearchParams({
@@ -77,11 +77,11 @@ export default function AuditLogsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [pagination.limit, filters]);
 
   useEffect(() => {
     fetchLogs();
-  }, [pagination.page, filters]);
+  }, [pagination.page, fetchLogs]);
 
   const handlePageChange = (page: number) => {
     setPagination((prev) => ({ ...prev, page }));
