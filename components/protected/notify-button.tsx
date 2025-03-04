@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { lineNotify } from '@/lib/linenotify'; 
+import { lineNotify } from '@/lib/linenotify';
 import { useSession } from 'next-auth/react';
 import { sendTelegramNotification } from '@/actions/telegram';
 
@@ -50,14 +50,18 @@ export function LineNotifyButton({
       console.log(`[LineButton] Session user data:`, {
         userArea: session?.user?.area,
         divName: session?.user?.div_name,
-        depName: session?.user?.dep_name
+        depName: session?.user?.dep_name,
       });
-      console.log(`[LineButton] Sending notification with userArea: ${session?.user?.area || 'not specified'}`);
-      
+      console.log(
+        `[LineButton] Sending notification with userArea: ${
+          session?.user?.area || 'not specified'
+        }`
+      );
+
       // ตรวจสอบและตั้งค่าเริ่มต้น
-      const divName = session?.user?.div_name || "";
-      const depName = session?.user?.dep_name || "";
-      
+      const divName = session?.user?.div_name || '';
+      const depName = session?.user?.dep_name || '';
+
       const success = await lineNotify({
         message: `ประจำวันที่ ${notifyDate} มีจำนวน ${messageCount.toString()} รายการ`,
         area,
@@ -67,7 +71,7 @@ export function LineNotifyButton({
         depName,
         includeAreaDetails: true,
       });
-      
+
       if (success) {
         const result = { success: 'ส่งการแจ้งเตือนสำเร็จ' };
         onNotificationResult(result);
@@ -87,7 +91,11 @@ export function LineNotifyButton({
 
   return (
     <Button onClick={handleNotify} disabled={isLoading} className='mt-4'>
-      {isLoading ? 'กำลังส่ง...' : 'ส่งการแจ้งเตือน Line'}
+      {isLoading
+        ? 'กำลังส่ง...'
+        : `ส่งข้อความผ่าน Line ${
+            session?.user?.area ? `เขต ${session?.user?.area}` : ''
+          }`}
     </Button>
   );
 }
@@ -109,20 +117,24 @@ export function TelegramNotifyButton({
       onNotificationResult(result);
       return result;
     }
-    
+
     setIsLoading(true);
     try {
       console.log(`[TelegramButton] Session user data:`, {
         userArea: session?.user?.area,
         divName: session?.user?.div_name,
-        depName: session?.user?.dep_name
+        depName: session?.user?.dep_name,
       });
-      console.log(`[TelegramButton] Sending notification with userArea: ${session?.user?.area || 'not specified'}`);
-      
+      console.log(
+        `[TelegramButton] Sending notification with userArea: ${
+          session?.user?.area || 'not specified'
+        }`
+      );
+
       // ตรวจสอบและตั้งค่าเริ่มต้น
-      const divName = session?.user?.div_name || "";
-      const depName = session?.user?.dep_name || "";
-      
+      const divName = session?.user?.div_name || '';
+      const depName = session?.user?.dep_name || '';
+
       const result = await sendTelegramNotification({
         message: `ประจำวันที่ ${notifyDate} มีจำนวน ${messageCount.toString()} รายการ`,
         // ไม่ส่ง area ที่ไม่ตรงกับ DB แต่ใช้ค่า userArea จาก session แทน
@@ -142,7 +154,9 @@ export function TelegramNotifyButton({
       }
     } catch (error) {
       console.error('เกิดข้อผิดพลาดในการส่งการแจ้งเตือน Telegram:', error);
-      const errorResult = { error: 'เกิดข้อผิดพลาดในการส่งการแจ้งเตือน Telegram' };
+      const errorResult = {
+        error: 'เกิดข้อผิดพลาดในการส่งการแจ้งเตือน Telegram',
+      };
       onNotificationResult(errorResult);
       return errorResult;
     } finally {
@@ -151,7 +165,11 @@ export function TelegramNotifyButton({
   };
 
   return (
-    <Button onClick={handleNotify} disabled={isLoading} className='mt-4 ml-2' variant="outline">
+    <Button
+      onClick={handleNotify}
+      disabled={isLoading}
+      className='mt-4 ml-2'
+      variant='outline'>
       {isLoading ? 'กำลังส่ง...' : 'ส่งการแจ้งเตือน Telegram'}
     </Button>
   );

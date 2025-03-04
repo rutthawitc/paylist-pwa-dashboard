@@ -46,10 +46,10 @@ export function TelegramNotifyButton({
     }
 
     setIsLoading(true);
-    
+
     try {
       console.log('Sending Telegram notification with area:', area);
-      
+
       const success = await telegramNotify({
         message: noti_message,
         userId,
@@ -69,10 +69,11 @@ export function TelegramNotifyButton({
       }
     } catch (error) {
       console.error('เกิดข้อผิดพลาดในการส่งการแจ้งเตือน Telegram:', error);
-      const errorMsg = error instanceof Error 
-        ? `เกิดข้อผิดพลาดในการส่งการแจ้งเตือน Telegram: ${error.message}`
-        : 'เกิดข้อผิดพลาดในการส่งการแจ้งเตือน Telegram';
-      
+      const errorMsg =
+        error instanceof Error
+          ? `เกิดข้อผิดพลาดในการส่งการแจ้งเตือน Telegram: ${error.message}`
+          : 'เกิดข้อผิดพลาดในการส่งการแจ้งเตือน Telegram';
+
       const result = { error: errorMsg };
       onNotificationResult(result);
       return result;
@@ -82,19 +83,20 @@ export function TelegramNotifyButton({
   };
 
   return (
-    <Button 
-      onClick={handleNotify} 
-      disabled={isLoading} 
-      variant="secondary"
-      className="mt-4"
-    >
+    <Button
+      onClick={handleNotify}
+      disabled={isLoading}
+      variant='default'
+      className='mt-4'>
       {isLoading ? (
         <>
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          <Loader2 className='mr-2 h-4 w-4 animate-spin' />
           กำลังส่งข้อความ...
         </>
       ) : (
-        `ส่งข้อความผ่าน Telegram${area ? ` (${area})` : ''}`
+        `ส่งข้อความผ่าน Telegram${
+          session?.user?.area ? ` เขต ${session?.user?.area}` : ''
+        }`
       )}
     </Button>
   );
