@@ -13,6 +13,7 @@ import { updateCompanyNames, ExcelRow } from '@/actions/replacename';
 
 import { uploadPaylist } from '@/actions/upload';
 import { LineNotifyButton } from '@/components/protected/notify-button';
+import { TelegramNotifyButton } from '@/components/protected/telegram-notify-button';
 
 import { excelSerialNumberToDate, convertToThaiBaht } from '@/lib/helper-fnc';
 import {
@@ -359,6 +360,12 @@ const XlsUploadForm = () => {
           <LineNotifyButton
             messageCount={dataCount}
             onNotificationResult={handleNotificationResult}
+            area="ข้อมูลจาก Excel"
+          />
+          <TelegramNotifyButton
+            messageCount={dataCount}
+            onNotificationResult={handleNotificationResult}
+            area="ข้อมูลจาก Excel"
           />
           {notificationStatus && (
             <p

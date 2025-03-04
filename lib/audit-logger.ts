@@ -1,9 +1,8 @@
-import { PrismaClient, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { headers } from 'next/headers';
+import { db } from '@/lib/db';
 
-const prisma = new PrismaClient();
-
-export type AuditAction = 'CREATE' | 'UPDATE' | 'DELETE' | 'LOGIN' | 'LOGOUT';
+export type AuditAction = 'CREATE' | 'UPDATE' | 'DELETE' | 'LOGIN' | 'LOGOUT' | 'NOTIFY';
 export type AuditResource = 'PayList' | 'Users' | 'Companyname';
 
 export interface AuditLogParams {
@@ -25,7 +24,7 @@ export async function createAuditLog({
     const ipAddress = headersList.get('x-forwarded-for') || 
                      headersList.get('x-real-ip');
 
-    await prisma.auditLog.create({
+    await db.auditLog.create({
       data: {
         userId,
         action,
@@ -69,8 +68,8 @@ export async function getAuditLogs({
     }
 
     const [total, logs] = await Promise.all([
-      prisma.auditLog.count({ where }),
-      prisma.auditLog.findMany({
+      db.auditLog.count({ where }),
+      db.auditLog.findMany({
         where,
         orderBy: { createdAt: 'desc' },
         take: limit,

@@ -1,9 +1,7 @@
 // lib/updateCompanyNames.ts
 'use server';
 
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { db } from '@/lib/db';
 
 export interface ExcelRow {
   uniqueID: string;
@@ -20,7 +18,7 @@ export async function updateCompanyNames(
   return await Promise.all(
     rowsData.map(async (row) => {
       if (row.recipient) {
-        const companyName = await prisma.companyname.findFirst({
+        const companyName = await db.companyname.findFirst({
           where: {
             short_name: {
               contains: row.recipient,

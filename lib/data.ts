@@ -21,15 +21,14 @@ export const getPayData = async (options?: {
   cache: 'no-store';
 }): Promise<PayData[]> => {
   try {
-    await db.$connect(); // เพิ่มการเชื่อมต่อ DB ทุกครั้ง
+    // ลบคำสั่ง db.$connect() ที่ไม่จำเป็น
     const payData = await db.payList.findMany();
     return payData;
   } catch (error) {
     console.error('Database connection error:', error);
     throw new DatabaseConnectionError();
-  } finally {
-    await db.$disconnect();
   }
+  // ลบ finally block ที่มี db.$disconnect()
 };
 
 /**
@@ -39,16 +38,16 @@ export const getPayData = async (options?: {
  */
 export const getAllRecordCount = async (options?: { cache: 'no-store' }) => {
   try {
-    await db.$connect();
+    // ลบคำสั่ง db.$connect() ที่ไม่จำเป็น
     const count = await db.payList.count();
     return count;
   } catch (error) {
     console.error('Database connection error:', error);
     throw new DatabaseConnectionError();
-  } finally {
-    await db.$disconnect();
   }
+  // ลบ finally block ที่มี db.$disconnect()
 };
+
 /**
  * Returns a new Date object with only the year, month, and day components from the input date.
  *
@@ -84,9 +83,6 @@ function getMonthName(date: Date): string {
  */
 export const getPayListSummary = async (options?: { cache: 'no-store' }) => {
   try {
-    await db.$disconnect();
-    await db.$connect();
-
     // Get user's area from session
     const session = await auth();
     const userArea = session?.user?.area || '';
@@ -160,7 +156,5 @@ export const getPayListSummary = async (options?: { cache: 'no-store' }) => {
   } catch (error) {
     console.error('Database connection error:', error);
     throw new DatabaseConnectionError();
-  } finally {
-    await db.$disconnect();
   }
 };

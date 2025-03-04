@@ -1,21 +1,35 @@
-export const lineNotifyHandler = async (message: string): Promise<void> => {
+import { useToast } from '@/hooks/use-toast';
+import axios from 'axios';
+
+export interface LineNotifyOptions {
+  message: string;
+  area?: string;
+  userId?: string;
+  userArea?: string;
+  divName?: string;
+  depName?: string;
+  includeAreaDetails?: boolean;
+}
+
+export const lineNotify = async (options: LineNotifyOptions): Promise<boolean> => {
   try {
-    const response = await fetch('/api/notify', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ message }),
+    const { message, area, userId, userArea, divName, depName, includeAreaDetails } = options;
+    
+    const response = await axios.post('/api/notify', {
+      message,
+      area,
+      userId,
+      userArea,
+      divName,
+      depName,
+      includeAreaDetails,
     });
 
-    if (!response.ok) {
-      throw new Error('Failed to send Line notification');
-    }
-
-    const data = await response.json();
-    console.log('Line Notify response:', data);
+    // We'll handle toast in the component
+    return true;
   } catch (error) {
-    console.error('Error sending Line notification:', error);
-    throw error;
+    console.error('Line Notify Error:', error);
+    // We'll handle toast in the component
+    return false;
   }
 };

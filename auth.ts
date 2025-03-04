@@ -1,7 +1,6 @@
 import NextAuth, { DefaultSession, User as NextAuthUser } from 'next-auth';
-import { AdapterUser } from 'next-auth/adapters';
 import authConfig from '@/auth.config';
-import { JWT } from 'next-auth/jwt';
+
 
 // กำหนดประเภทข้อมูลเพิ่มเติมสำหรับ user
 interface ExtendedUser extends NextAuthUser {
@@ -46,7 +45,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
   session: {
     strategy: 'jwt',
-    maxAge: 15 * 60, // 15 นาที
+    maxAge: 3 * 60 * 60, // 3 ชั่วโมง
   },
   secret: process.env.NEXTAUTH_SECRET
 });

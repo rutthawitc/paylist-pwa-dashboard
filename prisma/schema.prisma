@@ -38,14 +38,34 @@ model Companyname {
 model AuditLog {
   id        String   @id @default(cuid())
   userId    String
-  action    String   // เช่น CREATE, UPDATE, DELETE
-  resource  String   // เช่น PayList, Users
-  details   Json?    // เก็บข้อมูลเพิ่มเติม เช่น old value, new value
-  ipAddress String?  // เก็บ IP address ของผู้ใช้
-  userAgent String?  // เก็บข้อมูล browser/device
+  action    String // เช่น CREATE, UPDATE, DELETE
+  resource  String // เช่น PayList, Users
+  details   Json? // เก็บข้อมูลเพิ่มเติม เช่น old value, new value
+  ipAddress String? // เก็บ IP address ของผู้ใช้
+  userAgent String? // เก็บข้อมูล browser/device
   createdAt DateTime @default(now())
 
   @@index([userId])
   @@index([resource])
   @@index([createdAt])
+}
+
+// Model for storing notification settings for different areas
+model NotificationSetting {
+  id               String   @id @default(cuid())
+  area             String   @unique // พื้นที่/เขต
+  userArea         String? // พื้นที่ผู้ใช้งาน
+  divName          String? // ชื่อกอง
+  depName          String? // ชื่อฝ่าย
+  description      String? // คำอธิบายเพิ่มเติม
+  lineToken        String? // Line Notify Token
+  telegramBotToken String? // Telegram Bot Token
+  telegramChatId   String? // Telegram Chat ID
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  createdBy        String? // userId ของผู้สร้าง
+  updatedBy        String? // userId ของผู้แก้ไขล่าสุด
+
+  @@index([area])
 }

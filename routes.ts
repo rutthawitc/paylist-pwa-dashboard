@@ -24,6 +24,7 @@ export const adminRoutes: string[] = [
   '/members',
   '/dashboard',
   '/audit-logs', // เพิ่ม audit-logs route
+  '/notifications', // เพิ่ม notifications route
 ];
 
 /***

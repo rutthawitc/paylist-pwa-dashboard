@@ -1,6 +1,6 @@
 'use client';
 
-import { BookA, FileUp, Home, LineChart, Users, History } from 'lucide-react';
+import { BookA, FileUp, Home, LineChart, Users, History, Bell } from 'lucide-react';
 import Link from 'next/link';
 
 import { useSession } from 'next-auth/react';
@@ -40,6 +40,12 @@ const MenuList = () => {
             className='flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary'>
             <History className='h-4 w-4' />
             ประวัติการใช้งาน
+          </Link>
+          <Link
+            href='/notifications'
+            className='flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary'>
+            <Bell className='h-4 w-4' />
+            การแจ้งเตือน
           </Link>
         </>
       )}
