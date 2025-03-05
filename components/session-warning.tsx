@@ -38,6 +38,7 @@ export function SessionWarning({ timeoutSeconds }: { timeoutSeconds: number }) {
           <div className="flex gap-2">
             <Button 
               variant="outline"
+              className="bg-orange-500 hover:bg-orange-600 text-white border-orange-500 hover:border-orange-600"
               onClick={async () => {
                 warningToast.dismiss();
                 try {
