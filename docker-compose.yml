@@ -1,5 +1,3 @@
-version: '3'
-
 services:
   paylist-app:
     build:
@@ -9,8 +7,14 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      # Add your other environment variables here
-      # - DATABASE_URL=your_database_url
-      # - NEXTAUTH_SECRET=your_nextauth_secret
-      # - NEXTAUTH_URL=http://localhost:3000
+      # Database connection
+      - DATABASE_URL=${DATABASE_URL}
+      # Simple Auth.js configuration with only essential variables
+      - NEXTAUTH_SECRET=${AUTH_SECRET}
+      - JWT_SECRET=${AUTH_SECRET}
+      - NEXTAUTH_URL=http://localhost:3000
+      - AUTH_TRUST_HOST=true
+      - NEXTAUTH_SECURE_COOKIE=false
+    env_file:
+      - .env
     restart: unless-stopped
