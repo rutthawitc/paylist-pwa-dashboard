@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+  paylist-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      # Add your other environment variables here
+      # - DATABASE_URL=your_database_url
+      # - NEXTAUTH_SECRET=your_nextauth_secret
+      # - NEXTAUTH_URL=http://localhost:3000
+    restart: unless-stopped
