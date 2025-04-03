@@ -188,6 +188,8 @@ const XlsUploadForm = () => {
   };
   //---------------------------//
 
+  const { toast } = useToast();
+
   const onSubmit = (data: z.infer<typeof formSchema>) => {
     if (data.file && data.file.length > 0) {
       setFileData(data.file[0]);
@@ -217,7 +219,7 @@ const XlsUploadForm = () => {
               const transType = row[2] || '-';
               const dueDate = excelSerialNumberToDate(row[3]);
               const recipient = row[5] || '-';
-              
+
               // ตรวจสอบค่า row[6] ก่อนแปลงเป็นตัวเลข
               let amount;
               if (row[6] === undefined || row[6] === null || row[6] === '') {
@@ -227,14 +229,14 @@ const XlsUploadForm = () => {
                 const numValue = parseFloat(row[6] as string);
                 amount = isNaN(numValue) ? '-' : convertToThaiBaht(numValue);
               }
-              
+
               return {
                 uniqueID: uuidv4(),
                 doc_no: docNo,
                 trans_type: transType,
                 due_date: dueDate,
                 recipient: recipient,
-                amount: amount
+                amount: amount,
               };
             });
 
@@ -243,6 +245,15 @@ const XlsUploadForm = () => {
           setPreviewData(rowsData);
           setDataCount(rowsData.length);
           setUploadProgress(100);
+
+          // แสดง toast แจ้งเตือนให้ตรวจสอบข้อมูล
+          toast({
+            title: 'โปรดตรวจสอบข้อมูล',
+            description:
+              'โปรดเช็คความถูกต้องและความซ้ำซ้อนของข้อมูลก่อนการบันทึก',
+            variant: 'destructive',
+            duration: 4000,
+          });
         } catch (err) {
           setError('เกิดข้อผิดพลาดในการอ่านหรืออัปเดตข้อมูล');
           console.error(err);
@@ -251,9 +262,7 @@ const XlsUploadForm = () => {
 
       processFile();
     }
-  }, [fileData]);
-
-  const { toast } = useToast();
+  }, [fileData, toast]);
 
   const handlePDPACheck = () => {
     if (!previewData || previewData.length === 0) {
@@ -393,7 +402,12 @@ const XlsUploadForm = () => {
             messageCount={dataCount}
             onNotificationResult={handleNotificationResult}
             area='Telegram'
-            disabled={isSaving || previewData.length === 0 || saveMessage === null || !saveMessage.includes('Success')}
+            disabled={
+              isSaving ||
+              previewData.length === 0 ||
+              saveMessage === null ||
+              !saveMessage.includes('Success')
+            }
           />
           {notificationStatus && (
             <p
