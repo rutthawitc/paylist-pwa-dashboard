@@ -36,7 +36,7 @@ export function TelegramNotifyButton({
 
   const notifyDate = formatThaiDate(new Date());
 
-  const noti_message = `แจ้งเตือนการจ่ายเงิน กปภ.ข.๖ ประจำวันที่ ${notifyDate} มีจำนวน ${messageCount.toString()} รายการ
+  const noti_message = `แจ้งเตือนการจ่ายเงิน ประจำวันที่ ${notifyDate} มีจำนวน ${messageCount.toString()} รายการ
 
 กรุณาตรวจสอบในระบบ http://110.76.155.100:10002/`;
 
