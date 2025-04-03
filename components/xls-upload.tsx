@@ -209,14 +209,34 @@ const XlsUploadForm = () => {
             header: 1,
           });
 
-          let rowsData: ExcelRow[] = xcelData.map((row: RowData) => ({
-            uniqueID: uuidv4(),
-            doc_no: row[0],
-            trans_type: row[2],
-            due_date: excelSerialNumberToDate(row[3]),
-            recipient: row[5],
-            amount: convertToThaiBaht(parseFloat(row[6] as string)),
-          }));
+          let rowsData: ExcelRow[] = xcelData
+            .filter((row: RowData) => row && row.length > 0) // กรองแถวที่ว่างเปล่า
+            .map((row: RowData) => {
+              // ตรวจสอบและจัดการกับข้อมูลที่ไม่สมบูรณ์
+              const docNo = row[0] || '-';
+              const transType = row[2] || '-';
+              const dueDate = excelSerialNumberToDate(row[3]);
+              const recipient = row[5] || '-';
+              
+              // ตรวจสอบค่า row[6] ก่อนแปลงเป็นตัวเลข
+              let amount;
+              if (row[6] === undefined || row[6] === null || row[6] === '') {
+                amount = '-';
+              } else {
+                // พยายามแปลงเป็นตัวเลข ถ้าไม่ได้ก็ใช้ '-'
+                const numValue = parseFloat(row[6] as string);
+                amount = isNaN(numValue) ? '-' : convertToThaiBaht(numValue);
+              }
+              
+              return {
+                uniqueID: uuidv4(),
+                doc_no: docNo,
+                trans_type: transType,
+                due_date: dueDate,
+                recipient: recipient,
+                amount: amount
+              };
+            });
 
           rowsData = await updateCompanyNames(rowsData);
           console.log('Updated Rows Data:', rowsData);

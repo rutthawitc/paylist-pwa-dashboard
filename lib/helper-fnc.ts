@@ -11,16 +11,26 @@ dayjs.extend(buddhistEra);
 /**
  * Convert a number to Thai Baht format.
  *
- * @param {number} number - The number to convert to Thai Baht format
- * @return {string} The formatted string with Thai Baht symbol
+ * @param {number|null|undefined} number - The number to convert to Thai Baht format
+ * @return {string} The formatted string with Thai Baht symbol or '-' if invalid
  */
-export function convertToThaiBaht(number: number): string {
-  const [integerPart, decimalPart] = number.toFixed(2).toString().split('.');
-  const formattedIntegerPart = integerPart.replace(
-    /\B(?=(\d{3})+(?!\d))/g,
-    ','
-  );
-  return `${formattedIntegerPart}.${decimalPart}`;
+export function convertToThaiBaht(number: number | null | undefined): string {
+  // ตรวจสอบค่า null, undefined หรือ NaN
+  if (number === null || number === undefined || isNaN(number)) {
+    return '-';
+  }
+  
+  try {
+    const [integerPart, decimalPart] = number.toFixed(2).toString().split('.');
+    const formattedIntegerPart = integerPart.replace(
+      /\B(?=(\d{3})+(?!\d))/g,
+      ','
+    );
+    return `${formattedIntegerPart}.${decimalPart}`;
+  } catch (error) {
+    console.error('Error formatting number:', error);
+    return '-';
+  }
 }
 
 /**
