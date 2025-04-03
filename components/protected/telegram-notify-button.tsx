@@ -21,12 +21,14 @@ interface TelegramNotifyButtonProps {
   messageCount: number;
   onNotificationResult: (result: { success?: string; error?: string }) => void;
   area?: string;
+  disabled?: boolean;
 }
 
 export function TelegramNotifyButton({
   messageCount,
   onNotificationResult,
   area,
+  disabled,
 }: TelegramNotifyButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { data: session } = useSession();
@@ -85,7 +87,7 @@ export function TelegramNotifyButton({
   return (
     <Button
       onClick={handleNotify}
-      disabled={isLoading}
+      disabled={isLoading || disabled}
       variant='default'
       className='mt-4'>
       {isLoading ? (

@@ -10,6 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { v4 as uuidv4 } from 'uuid';
 import { updateCompanyNames, ExcelRow } from '@/actions/replacename';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Trash2 } from 'lucide-react';
 
 import { uploadPaylist } from '@/actions/upload';
 import { LineNotifyButton } from '@/components/protected/notify-button';
@@ -157,6 +159,11 @@ const XlsUploadForm = () => {
 
   const [success, setSuccess] = useState<string | undefined>('');
 
+  // State for row selection and deletion
+  const [selectedRows, setSelectedRows] = useState<string[]>([]);
+  const [selectAll, setSelectAll] = useState(false);
+  const [dataCount, setDataCount] = useState(0);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
   });
@@ -214,6 +221,7 @@ const XlsUploadForm = () => {
           rowsData = await updateCompanyNames(rowsData);
           console.log('Updated Rows Data:', rowsData);
           setPreviewData(rowsData);
+          setDataCount(rowsData.length);
           setUploadProgress(100);
         } catch (err) {
           setError('เกิดข้อผิดพลาดในการอ่านหรืออัปเดตข้อมูล');
@@ -293,7 +301,6 @@ const XlsUploadForm = () => {
   };
 
   console.log('Preview', previewData);
-  let dataCount = previewData.length;
 
   const handleSave = async () => {
     if (!previewData || previewData.length === 0) {
@@ -357,15 +364,16 @@ const XlsUploadForm = () => {
             {isSaving ? 'กำลังบันทึก...' : 'บันทึกข้อมูล'}
           </Button>
 
-          <LineNotifyButton
+          {/*           <LineNotifyButton
             messageCount={dataCount}
             onNotificationResult={handleNotificationResult}
             area='Line Notify'
-          />
+          /> */}
           <TelegramNotifyButton
             messageCount={dataCount}
             onNotificationResult={handleNotificationResult}
             area='Telegram'
+            disabled={isSaving || previewData.length === 0 || saveMessage === null || !saveMessage.includes('Success')}
           />
           {notificationStatus && (
             <p
@@ -399,28 +407,95 @@ const XlsUploadForm = () => {
         {error && <p className='text-red-500 mt-4'>{error}</p>}
 
         {previewData.length > 0 && (
-          <Table>
-            <TableHeader>
-              <TableRow className='text-center font-semibold'>
-                <TableHead>เลขที่เช็ค</TableHead>
-                <TableHead>ประเภท</TableHead>
-                <TableHead>วันที่</TableHead>
-                <TableHead>ชื่อลูกค้า</TableHead>
-                <TableHead>จํานวนเงิน (บาท)</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {previewData.map((row) => (
-                <TableRow key={row.uniqueID}>
-                  <TableCell>{row.doc_no}</TableCell>
-                  <TableCell>{row.trans_type}</TableCell>
-                  <TableCell>{row.due_date}</TableCell>
-                  <TableCell>{row.recipient}</TableCell>
-                  <TableCell className='text-right'>{row.amount}</TableCell>
+          <>
+            <div className='flex justify-end mb-2 gap-2'>
+              <Button
+                variant='destructive'
+                size='sm'
+                onClick={() => {
+                  const newPreviewData = previewData.filter(
+                    (row) => !selectedRows.includes(row.uniqueID)
+                  );
+                  setPreviewData(newPreviewData);
+                  setSelectedRows([]);
+                  setSelectAll(false);
+                  setDataCount(newPreviewData.length);
+                }}
+                disabled={selectedRows.length === 0}>
+                ลบรายการที่เลือก ({selectedRows.length})
+              </Button>
+            </div>
+            <Table>
+              <TableHeader>
+                <TableRow className='text-center font-semibold'>
+                  <TableHead className='w-[50px]'>
+                    <Checkbox
+                      checked={selectAll}
+                      onCheckedChange={(checked) => {
+                        setSelectAll(!!checked);
+                        if (checked) {
+                          setSelectedRows(
+                            previewData.map((row) => row.uniqueID)
+                          );
+                        } else {
+                          setSelectedRows([]);
+                        }
+                      }}
+                    />
+                  </TableHead>
+                  <TableHead>เลขที่เช็ค</TableHead>
+                  <TableHead>ประเภท</TableHead>
+                  <TableHead>วันที่</TableHead>
+                  <TableHead>ชื่อลูกค้า</TableHead>
+                  <TableHead>จํานวนเงิน (บาท)</TableHead>
+                  <TableHead className='w-[80px]'>จัดการ</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {previewData.map((row) => (
+                  <TableRow key={row.uniqueID}>
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedRows.includes(row.uniqueID)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedRows((prev) => [...prev, row.uniqueID]);
+                          } else {
+                            setSelectedRows((prev) =>
+                              prev.filter((id) => id !== row.uniqueID)
+                            );
+                            setSelectAll(false);
+                          }
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell>{row.doc_no}</TableCell>
+                    <TableCell>{row.trans_type}</TableCell>
+                    <TableCell>{row.due_date}</TableCell>
+                    <TableCell>{row.recipient}</TableCell>
+                    <TableCell className='text-right'>{row.amount}</TableCell>
+                    <TableCell>
+                      <Button
+                        variant='ghost'
+                        size='icon'
+                        onClick={() => {
+                          const newPreviewData = previewData.filter(
+                            (item) => item.uniqueID !== row.uniqueID
+                          );
+                          setPreviewData(newPreviewData);
+                          setSelectedRows((prev) =>
+                            prev.filter((id) => id !== row.uniqueID)
+                          );
+                          setDataCount(newPreviewData.length);
+                        }}>
+                        <Trash2 className='h-4 w-4 text-red-500' />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </>
         )}
       </form>
     </Form>

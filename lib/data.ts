@@ -14,6 +14,7 @@ interface PayData {
 
 /**
  * Retrieves payment data from the database asynchronously.
+ * Filters data based on user's area when available.
  *
  * @return {Promise<PayData[]>} An array of payment data objects.
  */
@@ -21,8 +22,21 @@ export const getPayData = async (options?: {
   cache: 'no-store';
 }): Promise<PayData[]> => {
   try {
+    // Get user's area from session
+    const session = await auth();
+    const userArea = session?.user?.area || '';
+
+    // Add area filter if user has area
+    const areaFilter = userArea ? { area: userArea } : {};
+    
     // ลบคำสั่ง db.$connect() ที่ไม่จำเป็น
-    const payData = await db.payList.findMany();
+    const payData = await db.payList.findMany({
+      where: areaFilter,
+      orderBy: {
+        upload_at: 'desc'
+      }
+    });
+    
     return payData;
   } catch (error) {
     console.error('Database connection error:', error);
@@ -33,13 +47,23 @@ export const getPayData = async (options?: {
 
 /**
  * Retrieves the record count from the database asynchronously.
+ * Counts only records from the user's area when available.
  *
  * @return {Promise<number>} The count of records in the database.
  */
 export const getAllRecordCount = async (options?: { cache: 'no-store' }) => {
   try {
+    // Get user's area from session
+    const session = await auth();
+    const userArea = session?.user?.area || '';
+
+    // Add area filter if user has area
+    const areaFilter = userArea ? { area: userArea } : {};
+    
     // ลบคำสั่ง db.$connect() ที่ไม่จำเป็น
-    const count = await db.payList.count();
+    const count = await db.payList.count({
+      where: areaFilter
+    });
     return count;
   } catch (error) {
     console.error('Database connection error:', error);
