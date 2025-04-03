@@ -8,16 +8,32 @@ import { db } from '@/lib/db';
 // ใช้ singleton instance ของ PrismaClient จาก lib/db.ts
 
 export interface GetNotificationSettingsParams {
+  userArea?: string;
+  isAdmin?: boolean;
 }
 
-// รับรายการการตั้งค่าการแจ้งเตือนทั้งหมด
-export async function getNotificationSettings() {
+// รับรายการการตั้งค่าการแจ้งเตือนทั้งหมดหรือเฉพาะเขตของผู้ใช้
+export async function getNotificationSettings(params?: GetNotificationSettingsParams) {
   try {
+    const { userArea, isAdmin } = params || {};
+    
+    // สร้างเงื่อนไขในการค้นหา
+    let whereCondition = {};
+    
+    // ถ้าไม่ใช่ admin และมี userArea ให้กรองตาม userArea
+    if (!isAdmin && userArea) {
+      whereCondition = {
+        area: userArea
+      };
+    }
+    
     const settings = await db.notificationSetting.findMany({
+      where: whereCondition,
       orderBy: {
         area: 'asc',
       },
     });
+    
     return { success: true, data: settings };
   } catch (error) {
     console.error('Error fetching notification settings:', error);
