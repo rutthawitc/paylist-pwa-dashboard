@@ -25,6 +25,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useToast } from '@/components/ui/use-toast';
+import { uploadPaylist } from '@/actions/upload';
+import { PaylistType } from '@/schemas';
+import { TelegramNotifyButton } from '@/components/protected/telegram-notify-button';
 
 const MAX_FILE_SIZE = 10000000; // 10MB
 const ACCEPTED_FILE_TYPES = ['text/html', 'text/htm'];
@@ -247,11 +250,191 @@ const HtmlUploadForm = () => {
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
   const [selectAll, setSelectAll] = useState(false);
 
+  // State for save and database operations
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
   });
 
   const { toast } = useToast();
+
+  /**
+   * PDPA anonymization helper
+   * Anonymizes Thai names by replacing trailing characters with asterisks
+   */
+  const anonymizeWord = (word: string, charsToAnonymize: number): string => {
+    if (word.length <= 4) {
+      // For short words (4 chars or less), only replace last character
+      return word.slice(0, -1) + '*';
+    }
+    if (word.length <= charsToAnonymize) {
+      // If word is shorter than replacement count, keep as is
+      return word;
+    }
+    // Replace trailing characters
+    const keepChars = word.length - charsToAnonymize;
+    return word.slice(0, keepChars) + '*'.repeat(charsToAnonymize);
+  };
+
+  /**
+   * Thai name prefixes for PDPA anonymization
+   */
+  const thaiPrefixes = [
+    'นาย',
+    'นาง',
+    'นางสาว',
+    'ดร.',
+    'พญ.',
+    'นพ.',
+    'ผศ.',
+    'รศ.',
+    'ศ.',
+    'พลเอก',
+    'พลโท',
+    'พลตรี',
+    'พันเอก',
+    'พันโท',
+    'พันตรี',
+    'ร้อยเอก',
+    'ร้อยโท',
+    'ร้อยตรี',
+    'จ่าสิบเอก',
+  ];
+
+  /**
+   * PDPA Check Handler
+   * Anonymizes recipient names according to PDPA rules
+   */
+  const handlePDPACheck = () => {
+    if (!previewData || previewData.length === 0) {
+      toast({
+        title: 'ข้อผิดพลาด',
+        description: 'ไม่พบข้อมูลที่จะตรวจสอบ PDPA',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const updatedData = previewData.map((row) => {
+      const recipient = row.ชื่อผู้รับเงิน;
+      if (recipient) {
+        // Find matching Thai prefix
+        const matchedPrefix = thaiPrefixes.find((prefix) =>
+          recipient.startsWith(prefix)
+        );
+
+        if (matchedPrefix) {
+          // Extract remaining part after prefix
+          const remainingPart = recipient.slice(matchedPrefix.length).trim();
+
+          // Split name and surname
+          const [name, surname] = remainingPart.split(' ');
+
+          // Anonymize name and surname
+          const anonymizedName = name ? anonymizeWord(name, 4) : '';
+          const anonymizedSurname = surname ? anonymizeWord(surname, 4) : '';
+
+          // Recombine with prefix
+          return {
+            ...row,
+            ชื่อผู้รับเงิน: [matchedPrefix, anonymizedName, anonymizedSurname]
+              .filter(Boolean)
+              .join(' '),
+          };
+        }
+      }
+      return row;
+    });
+
+    setPreviewData(updatedData);
+    toast({
+      title: 'PDPA Check',
+      description: 'ตรวจสอบและปรับปรุงข้อมูล PDPA เรียบร้อยแล้ว',
+      duration: 3000,
+    });
+  };
+
+  /**
+   * Convert HTML PaymentRow format to XLS PaylistType format
+   */
+  const convertToPaylistFormat = (): PaylistType[] => {
+    return previewData.map((row) => ({
+      doc_no: row.คีย์ธนาคาร,
+      trans_type: getPaymentMethodLabel(row.วิธีการจ่าย),
+      due_date: row.กำหนดชำระ,
+      recipient: row.ชื่อผู้รับเงิน,
+      amount: row.รวมจ่ายสุทธิ,
+    }));
+  };
+
+  /**
+   * Save data to database
+   */
+  const handleSave = async () => {
+    if (!previewData || previewData.length === 0) {
+      toast({
+        title: 'ข้อผิดพลาด',
+        description: 'ไม่พบข้อมูลที่จะบันทึก',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsSaving(true);
+    setSaveSuccess(false);
+
+    try {
+      const paylistData = convertToPaylistFormat();
+      const result = await uploadPaylist(paylistData);
+
+      if (result.success) {
+        setSaveSuccess(true);
+        toast({
+          title: 'สำเร็จ',
+          description: result.success,
+          duration: 3000,
+        });
+      } else if (result.error) {
+        setSaveSuccess(false);
+        toast({
+          title: 'ข้อผิดพลาด',
+          description: result.error,
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      setSaveSuccess(false);
+      toast({
+        title: 'ข้อผิดพลาด',
+        description: 'เกิดข้อผิดพลาดในการบันทึกข้อมูล',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  /**
+   * Handle Telegram notification result
+   */
+  const handleNotificationResult = (result: { success?: string; error?: string }) => {
+    if (result.success) {
+      toast({
+        title: 'สำเร็จ',
+        description: result.success,
+        duration: 3000,
+      });
+    } else if (result.error) {
+      toast({
+        title: 'ข้อผิดพลาด',
+        description: result.error,
+        variant: 'destructive',
+        duration: 3000,
+      });
+    }
+  };
 
   /**
    * Reads the contents of the provided File as text
@@ -426,11 +609,16 @@ const HtmlUploadForm = () => {
         <FormField
           control={form.control}
           name='file'
-          render={({ field: { onChange, value, ...rest } }) => (
+          render={({ field: { onChange, value, ref, ...rest } }) => (
             <FormItem className='hidden'>
               <FormControl>
                 <input
-                  ref={fileInputRef}
+                  ref={(e) => {
+                    ref(e);
+                    if (fileInputRef) {
+                      (fileInputRef as React.MutableRefObject<HTMLInputElement | null>).current = e;
+                    }
+                  }}
                   type='file'
                   onChange={(e) => {
                     onChange(e.target.files);
@@ -462,6 +650,76 @@ const HtmlUploadForm = () => {
 
         {previewData.length > 0 && (
           <>
+            {/* Note Box */}
+            <div className='mt-6 mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg'>
+              <p className='text-sm text-blue-800'>
+                <strong>หมายเหตุ:</strong> ตรวจสอบความถูกต้องของข้อมูลก่อนนำไปใช้งาน
+                คุณสามารถเลือกและลบรายการที่ไม่ต้องการได้
+              </p>
+            </div>
+
+            {/* Action Buttons Row */}
+            <div className='mb-4 flex flex-wrap gap-2 items-center'>
+              <Button
+                type='button'
+                variant='outline'
+                size='sm'
+                onClick={handlePDPACheck}
+                disabled={isSaving || previewData.length === 0}
+                className='flex items-center gap-2'>
+                <FileText className='w-4 h-4' />
+                ตรวจสอบ PDPA
+              </Button>
+
+              <Button
+                type='button'
+                size='sm'
+                onClick={handleSave}
+                disabled={isSaving || previewData.length === 0}
+                className='flex items-center gap-2'>
+                {isSaving ? (
+                  <>
+                    <div className='w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin' />
+                    กำลังบันทึก...
+                  </>
+                ) : (
+                  <>
+                    <Upload className='w-4 h-4' />
+                    บันทึกข้อมูล
+                  </>
+                )}
+              </Button>
+
+              <TelegramNotifyButton
+                messageCount={previewData.length}
+                onNotificationResult={handleNotificationResult}
+                area='Telegram'
+                disabled={!saveSuccess || isSaving || previewData.length === 0}
+              />
+
+              <Button
+                type='button'
+                variant='destructive'
+                size='sm'
+                onClick={() => {
+                  setPreviewData([]);
+                  setSelectedRows([]);
+                  setSelectAll(false);
+                  setSaveSuccess(false);
+                  setUploadProgress(0);
+                  setError(null);
+                  form.reset();
+                  if (fileInputRef.current) {
+                    fileInputRef.current.value = '';
+                  }
+                }}
+                disabled={isSaving}
+                className='flex items-center gap-2'>
+                <Trash2 className='w-4 h-4' />
+                ล้างข้อมูล
+              </Button>
+            </div>
+
             <div className='flex justify-between items-center my-4'>
               <p className='text-sm text-gray-600'>
                 ข้อมูลทั้งหมด: {previewData.length} รายการ
@@ -478,13 +736,14 @@ const HtmlUploadForm = () => {
                   setPreviewData(newPreviewData);
                   setSelectedRows([]);
                   setSelectAll(false);
+                  setSaveSuccess(false); // Reset save status when deleting rows
                   toast({
                     title: 'ลบรายการสำเร็จ',
                     description: `ลบรายการ ${selectedRows.length} รายการแล้ว`,
                     duration: 2000,
                   });
                 }}
-                disabled={selectedRows.length === 0}>
+                disabled={selectedRows.length === 0 || isSaving}>
                 <Trash2 className='w-4 h-4 mr-2' />
                 ลบรายการที่เลือก ({selectedRows.length})
               </Button>
@@ -536,9 +795,7 @@ const HtmlUploadForm = () => {
                         />
                       </TableCell>
                       <TableCell>
-                        <span className='inline-block px-3 py-1 bg-blue-100 text-blue-800 font-semibold rounded text-sm'>
-                          {getPaymentMethodLabel(row.วิธีการจ่าย)}
-                        </span>
+                        {getPaymentMethodLabel(row.วิธีการจ่าย)}
                       </TableCell>
                       <TableCell>{row.คีย์ธนาคาร}</TableCell>
                       <TableCell>{row.กำหนดชำระ}</TableCell>
@@ -559,7 +816,9 @@ const HtmlUploadForm = () => {
                             setSelectedRows((prev) =>
                               prev.filter((id) => id !== row.uniqueID)
                             );
-                          }}>
+                            setSaveSuccess(false); // Reset save status when deleting a row
+                          }}
+                          disabled={isSaving}>
                           <Trash2 className='h-4 w-4 text-red-500' />
                         </Button>
                       </TableCell>
@@ -567,13 +826,6 @@ const HtmlUploadForm = () => {
                   ))}
                 </TableBody>
               </Table>
-            </div>
-
-            <div className='mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg'>
-              <p className='text-sm text-blue-800'>
-                <strong>หมายเหตุ:</strong> ตรวจสอบความถูกต้องของข้อมูลก่อนนำไปใช้งาน
-                คุณสามารถเลือกและลบรายการที่ไม่ต้องการได้
-              </p>
             </div>
           </>
         )}
