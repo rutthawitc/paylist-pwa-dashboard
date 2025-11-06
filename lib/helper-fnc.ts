@@ -34,39 +34,6 @@ export function convertToThaiBaht(number: number | null | undefined): string {
 }
 
 /**
- * Converts an Excel serial number or a date string in DD.MM.YYYY format to a date string in DD.MM.YYYY format, where the year is in the Buddhist era.
- *
- * @param {string | number | null} dateValue - The Excel serial number or date string to be converted.
- * @return {string} The converted date string in DD.MM.YYYY format, or an empty string if the input is null or invalid.
- */
-export function excelSerialNumberToDate(
-  dateValue: string | number | null
-): string {
-  if (dateValue === null) {
-    return ''; // หรือค่าเริ่มต้นอื่นๆ ตามที่คุณต้องการ เช่น 'N/A'
-  }
-
-  if (typeof dateValue === 'string') {
-    // ถ้าเป็นสตริง ให้สันนิษฐานว่าอยู่ในรูปแบบ DD.MM.YYYY
-    const [day, month, year] = dateValue.split('.');
-    // แปลงปี ค.ศ. เป็น พ.ศ.
-    const buddhistYear = parseInt(year) + 543;
-    return `${day}.${month}.${buddhistYear}`;
-  } else if (typeof dateValue === 'number') {
-    // ถ้าเป็นตัวเลข ให้แปลงจาก Excel serial number
-    const milliseconds = (dateValue - 25569) * 86400 * 1000;
-    const date = new Date(milliseconds);
-    const day = date.getDate().toString().padStart(2, '0');
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const year = date.getFullYear() + 543; // แปลงเป็นปีพุทธศักราช
-    return `${day}.${month}.${year}`;
-  }
-
-  // หากไม่ใช่ทั้งสตริง, ตัวเลข, หรือ null ให้คืนค่าสตริงว่าง
-  return '';
-}
-
-/**
  * Formats the given ISO string into "DD/MM/YYYY" format.
  *
  * @param {string} isoString - The ISO string to format.
