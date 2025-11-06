@@ -40,15 +40,12 @@ const formSchema = z.object({
       (files) => files?.[0]?.size <= MAX_FILE_SIZE,
       `ขนาดไฟล์ต้องไม่เกิน 10MB`
     )
-    .refine(
-      (files) => {
-        const file = files?.[0];
-        if (!file) return false;
-        const fileName = file.name.toLowerCase();
-        return fileName.endsWith('.html') || fileName.endsWith('.htm');
-      },
-      'รองรับเฉพาะไฟล์ .html และ .htm เท่านั้น'
-    ),
+    .refine((files) => {
+      const file = files?.[0];
+      if (!file) return false;
+      const fileName = file.name.toLowerCase();
+      return fileName.endsWith('.html') || fileName.endsWith('.htm');
+    }, 'รองรับเฉพาะไฟล์ .html และ .htm เท่านั้น'),
 });
 
 export interface PaymentRow {
@@ -95,7 +92,9 @@ function convertPaymentHTMLToData(htmlContent: string): PaymentRow[] {
       currentPayment = {};
 
       // แยกรหัสเจ้าหนี้และชื่อ
-      const vendorMatch = text.match(/^(\d{6})\s+(.*?)\s+ช\.แหล่งเงินทุนกปภ\.$/);
+      const vendorMatch = text.match(
+        /^(\d{6})\s+(.*?)\s+ช\.แหล่งเงินทุนกปภ\.$/
+      );
       if (vendorMatch) {
         currentPayment['รหัสเจ้าหนี้'] = vendorMatch[1];
         currentPayment['ชื่อเจ้าหนี้'] = vendorMatch[2].trim();
@@ -121,7 +120,10 @@ function convertPaymentHTMLToData(htmlContent: string): PaymentRow[] {
           currentPayment['เลขที่บัญชีธนาคาร'] = detailMatch[6];
           currentPayment['ชื่อผู้รับเงิน'] = detailMatch[7].trim();
           currentPayment['จำนวนเงิน'] = detailMatch[8].replace(/,/g, '');
-          currentPayment['ภาษีหัก_ณ_ที่จ่าย'] = detailMatch[9].replace(/,/g, '');
+          currentPayment['ภาษีหัก_ณ_ที่จ่าย'] = detailMatch[9].replace(
+            /,/g,
+            ''
+          );
           currentPayment['รวมจ่ายสุทธิ'] = detailMatch[10].replace(/,/g, '');
           currentPayment['uniqueID'] = uuidv4();
 
@@ -130,7 +132,14 @@ function convertPaymentHTMLToData(htmlContent: string): PaymentRow[] {
           i++; // ข้ามบรรทัดที่ประมวลผลแล้ว เพื่อไม่ให้ถูกประมวลผลซ้ำ
         } else {
           // บันทึกบรรทัดที่ไม่ตรงรูปแบบปกติ
-          console.log('Failed normal match. Next line:', nextLine, 'Length:', nextLine.length, 'Chars:', Array.from(nextLine).map(c => c.charCodeAt(0)));
+          console.log(
+            'Failed normal match. Next line:',
+            nextLine,
+            'Length:',
+            nextLine.length,
+            'Chars:',
+            Array.from(nextLine).map((c) => c.charCodeAt(0))
+          );
 
           // กรณีพิเศษ: วิธีการจ่าย "C" อาจอยู่คนละบรรทัดกับข้อมูลที่เหลือ
           // ตรวจสอบว่าบรรทัดถัดไปเป็นแค่ตัวอักษร C หรือไม่ (อาจมีช่องว่างข้างหน้าหรือข้างหลัง)
@@ -157,9 +166,12 @@ function convertPaymentHTMLToData(htmlContent: string): PaymentRow[] {
               currentPayment['คีย์ธนาคาร'] = splitDataMatch[4];
               currentPayment['เลขที่บัญชีธนาคาร'] = splitDataMatch[5];
               currentPayment['ชื่อผู้รับเงิน'] = splitDataMatch[6].trim();
-              currentPayment['จำนวนเงิน'] = splitDataMatch[7]?.replace(/,/g, '') || '';
-              currentPayment['ภาษีหัก_ณ_ที่จ่าย'] = splitDataMatch[8]?.replace(/,/g, '') || '';
-              currentPayment['รวมจ่ายสุทธิ'] = splitDataMatch[9]?.replace(/,/g, '') || '';
+              currentPayment['จำนวนเงิน'] =
+                splitDataMatch[7]?.replace(/,/g, '') || '';
+              currentPayment['ภาษีหัก_ณ_ที่จ่าย'] =
+                splitDataMatch[8]?.replace(/,/g, '') || '';
+              currentPayment['รวมจ่ายสุทธิ'] =
+                splitDataMatch[9]?.replace(/,/g, '') || '';
               currentPayment['uniqueID'] = uuidv4();
 
               console.log(`Successfully parsed C payment:`, currentPayment);
@@ -167,7 +179,9 @@ function convertPaymentHTMLToData(htmlContent: string): PaymentRow[] {
               // เพิ่มข้อมูลลงในอาร์เรย์
               payments.push({ ...currentPayment } as PaymentRow);
             } else {
-              console.log(`Failed to match split data for method ${paymentMethod}`);
+              console.log(
+                `Failed to match split data for method ${paymentMethod}`
+              );
 
               // ลองหาข้อมูลในบรรทัดถัดไปอีก (i+3) เผื่อจำนวนเงินอยู่อีกบรรทัด
               if (i + 3 < lines.length) {
@@ -186,16 +200,29 @@ function convertPaymentHTMLToData(htmlContent: string): PaymentRow[] {
                   currentPayment['เลขที่เอกสารตั้งหนี้'] = partialDataMatch[1];
                   currentPayment['วิธีการจ่าย'] = paymentMethod;
                   currentPayment['กำหนดชำระ'] = partialDataMatch[2];
-                  currentPayment['เลขที่เอกสารสั่งจ่ายเงิน'] = partialDataMatch[3];
+                  currentPayment['เลขที่เอกสารสั่งจ่ายเงิน'] =
+                    partialDataMatch[3];
                   currentPayment['คีย์ธนาคาร'] = partialDataMatch[4];
                   currentPayment['เลขที่บัญชีธนาคาร'] = partialDataMatch[5];
                   currentPayment['ชื่อผู้รับเงิน'] = partialDataMatch[6].trim();
-                  currentPayment['จำนวนเงิน'] = amountMatch[1].replace(/,/g, '');
-                  currentPayment['ภาษีหัก_ณ_ที่จ่าย'] = amountMatch[2].replace(/,/g, '');
-                  currentPayment['รวมจ่ายสุทธิ'] = amountMatch[3].replace(/,/g, '');
+                  currentPayment['จำนวนเงิน'] = amountMatch[1].replace(
+                    /,/g,
+                    ''
+                  );
+                  currentPayment['ภาษีหัก_ณ_ที่จ่าย'] = amountMatch[2].replace(
+                    /,/g,
+                    ''
+                  );
+                  currentPayment['รวมจ่ายสุทธิ'] = amountMatch[3].replace(
+                    /,/g,
+                    ''
+                  );
                   currentPayment['uniqueID'] = uuidv4();
 
-                  console.log(`Successfully parsed C payment (multi-line):`, currentPayment);
+                  console.log(
+                    `Successfully parsed C payment (multi-line):`,
+                    currentPayment
+                  );
 
                   // เพิ่มข้อมูลลงในอาร์เรย์
                   payments.push({ ...currentPayment } as PaymentRow);
@@ -207,7 +234,10 @@ function convertPaymentHTMLToData(htmlContent: string): PaymentRow[] {
       }
     }
     // ตรวจหาบรรทัดที่มีแค่เลขที่เอกสารตั้งหนี้ (กรณีที่มีหลายรายการต่อเจ้าหนี้เดียวกัน)
-    else if (/^\d{10}[\s\u00A0]+[A-Z][\s\u00A0]+\d{2}\.\d{2}\.\d{4}/.test(text) && currentPayment) {
+    else if (
+      /^\d{10}[\s\u00A0]+[A-Z][\s\u00A0]+\d{2}\.\d{2}\.\d{4}/.test(text) &&
+      currentPayment
+    ) {
       const detailMatch = text.match(
         /^(\d{10})[\s\u00A0]+([A-Z])[\s\u00A0]+(\d{2}\.\d{2}\.\d{4})[\s\u00A0]+(\d{10})[\s\u00A0]+(KTB|KT\d{3}|[A-Z]+)[\s\u00A0]+(\d{10})[\s\u00A0]+(.*?)[\s\u00A0]+(\d{1,3}(?:,\d{3})*\.\d{2})[\s\u00A0]+(\d{1,3}(?:,\d{3})*\.\d{2})[\s\u00A0]+(\d{1,3}(?:,\d{3})*\.\d{2})/
       );
@@ -223,12 +253,18 @@ function convertPaymentHTMLToData(htmlContent: string): PaymentRow[] {
         additionalPayment['เลขที่บัญชีธนาคาร'] = detailMatch[6];
         additionalPayment['ชื่อผู้รับเงิน'] = detailMatch[7].trim();
         additionalPayment['จำนวนเงิน'] = detailMatch[8].replace(/,/g, '');
-        additionalPayment['ภาษีหัก_ณ_ที่จ่าย'] = detailMatch[9].replace(/,/g, '');
+        additionalPayment['ภาษีหัก_ณ_ที่จ่าย'] = detailMatch[9].replace(
+          /,/g,
+          ''
+        );
         additionalPayment['รวมจ่ายสุทธิ'] = detailMatch[10].replace(/,/g, '');
         additionalPayment['uniqueID'] = uuidv4();
 
         // Debug: Log payment method
-        console.log(`Additional payment method for ${detailMatch[1]}:`, detailMatch[2]);
+        console.log(
+          `Additional payment method for ${detailMatch[1]}:`,
+          detailMatch[2]
+        );
 
         // เพิ่มข้อมูลลงในอาร์เรย์
         payments.push(additionalPayment as PaymentRow);
@@ -262,35 +298,25 @@ const HtmlUploadForm = () => {
 
   /**
    * PDPA anonymization helper
-   * Anonymizes Thai names by replacing trailing characters with asterisks
+   * Anonymizes Thai names by keeping first 2 characters and masking the rest
    */
-  const anonymizeWord = (word: string, charsToAnonymize: number): string => {
-    if (word.length <= 4) {
-      // For short words (4 chars or less), only replace last character
-      return word.slice(0, -1) + '*';
-    }
-    if (word.length <= charsToAnonymize) {
-      // If word is shorter than replacement count, keep as is
+  const anonymizeWord = (word: string): string => {
+    if (!word || word.length === 0) {
       return word;
     }
-    // Replace trailing characters
-    const keepChars = word.length - charsToAnonymize;
-    return word.slice(0, keepChars) + '*'.repeat(charsToAnonymize);
+
+    // Keep first 2 characters, mask the rest with asterisks
+    const keepChars = Math.min(2, word.length);
+    return word.slice(0, keepChars) + '*'.repeat(word.length - keepChars);
   };
 
   /**
    * Thai name prefixes for PDPA anonymization
+   * Sorted by length (longest first) to match correctly
    */
   const thaiPrefixes = [
-    'นาย',
-    'นาง',
     'นางสาว',
-    'ดร.',
-    'พญ.',
-    'นพ.',
-    'ผศ.',
-    'รศ.',
-    'ศ.',
+    'จ่าสิบเอก',
     'พลเอก',
     'พลโท',
     'พลตรี',
@@ -300,7 +326,15 @@ const HtmlUploadForm = () => {
     'ร้อยเอก',
     'ร้อยโท',
     'ร้อยตรี',
-    'จ่าสิบเอก',
+    'นาย',
+    'นาง',
+    'ดร.',
+    'พญ.',
+    'นพ.',
+    'ผศ.',
+    'รศ.',
+    'ศ.',
+    'น.ส.',
   ];
 
   /**
@@ -329,19 +363,18 @@ const HtmlUploadForm = () => {
           // Extract remaining part after prefix
           const remainingPart = recipient.slice(matchedPrefix.length).trim();
 
-          // Split name and surname
-          const [name, surname] = remainingPart.split(' ');
+          // Split by ANY whitespace characters (spaces, non-breaking spaces, tabs, etc.)
+          const nameParts = remainingPart.split(/\s+/).filter(Boolean);
 
-          // Anonymize name and surname
-          const anonymizedName = name ? anonymizeWord(name, 4) : '';
-          const anonymizedSurname = surname ? anonymizeWord(surname, 4) : '';
+          // Anonymize each word: keep first 2 chars, mask the rest with asterisks
+          const anonymizedParts = nameParts.map((word) => {
+            return anonymizeWord(word);
+          });
 
-          // Recombine with prefix
+          // Recombine with prefix and double space between parts
           return {
             ...row,
-            ชื่อผู้รับเงิน: [matchedPrefix, anonymizedName, anonymizedSurname]
-              .filter(Boolean)
-              .join(' '),
+            ชื่อผู้รับเงิน: [matchedPrefix, ...anonymizedParts].join('  '),
           };
         }
       }
@@ -419,7 +452,10 @@ const HtmlUploadForm = () => {
   /**
    * Handle Telegram notification result
    */
-  const handleNotificationResult = (result: { success?: string; error?: string }) => {
+  const handleNotificationResult = (result: {
+    success?: string;
+    error?: string;
+  }) => {
     if (result.success) {
       toast({
         title: 'สำเร็จ',
@@ -479,7 +515,9 @@ const HtmlUploadForm = () => {
         duration: 3000,
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการอ่านไฟล์');
+      setError(
+        err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการอ่านไฟล์'
+      );
       console.error(err);
       setUploadProgress(0);
     }
@@ -595,7 +633,10 @@ const HtmlUploadForm = () => {
                 {isDragging ? 'วางไฟล์ที่นี่' : 'ลากและวางไฟล์ HTML ที่นี่'}
               </p>
               <p className='text-sm text-gray-500 mb-4'>หรือ</p>
-              <Button type='button' onClick={handleBrowseClick} variant='outline'>
+              <Button
+                type='button'
+                onClick={handleBrowseClick}
+                variant='outline'>
                 เลือกไฟล์จากเครื่อง
               </Button>
             </div>
@@ -616,7 +657,9 @@ const HtmlUploadForm = () => {
                   ref={(e) => {
                     ref(e);
                     if (fileInputRef) {
-                      (fileInputRef as React.MutableRefObject<HTMLInputElement | null>).current = e;
+                      (
+                        fileInputRef as React.MutableRefObject<HTMLInputElement | null>
+                      ).current = e;
                     }
                   }}
                   type='file'
@@ -638,7 +681,9 @@ const HtmlUploadForm = () => {
         {uploadProgress > 0 && uploadProgress < 100 && (
           <div className='mt-4'>
             <Progress value={uploadProgress} className='w-full' />
-            <p className='text-center text-sm mt-2'>กำลังประมวลผล... {uploadProgress}%</p>
+            <p className='text-center text-sm mt-2'>
+              กำลังประมวลผล... {uploadProgress}%
+            </p>
           </div>
         )}
 
@@ -653,7 +698,8 @@ const HtmlUploadForm = () => {
             {/* Note Box */}
             <div className='mt-6 mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg'>
               <p className='text-sm text-blue-800'>
-                <strong>หมายเหตุ:</strong> ตรวจสอบความถูกต้องของข้อมูลก่อนนำไปใช้งาน
+                <strong>หมายเหตุ:</strong>{' '}
+                ตรวจสอบความถูกต้องของข้อมูลก่อนนำไปใช้งาน
                 คุณสามารถเลือกและลบรายการที่ไม่ต้องการได้
               </p>
             </div>
@@ -723,7 +769,8 @@ const HtmlUploadForm = () => {
             <div className='flex justify-between items-center my-4'>
               <p className='text-sm text-gray-600'>
                 ข้อมูลทั้งหมด: {previewData.length} รายการ
-                {selectedRows.length > 0 && ` (เลือก ${selectedRows.length} รายการ)`}
+                {selectedRows.length > 0 &&
+                  ` (เลือก ${selectedRows.length} รายการ)`}
               </p>
               <Button
                 type='button'
@@ -759,7 +806,9 @@ const HtmlUploadForm = () => {
                         onCheckedChange={(checked) => {
                           setSelectAll(!!checked);
                           if (checked) {
-                            setSelectedRows(previewData.map((row) => row.uniqueID));
+                            setSelectedRows(
+                              previewData.map((row) => row.uniqueID)
+                            );
                           } else {
                             setSelectedRows([]);
                           }
@@ -769,8 +818,12 @@ const HtmlUploadForm = () => {
                     <TableHead className='min-w-[150px]'>วิธีจ่าย</TableHead>
                     <TableHead className='min-w-[120px]'>คีย์ธนาคาร</TableHead>
                     <TableHead className='min-w-[120px]'>กำหนดชำระ</TableHead>
-                    <TableHead className='min-w-[250px]'>ชื่อผู้รับเงิน</TableHead>
-                    <TableHead className='min-w-[150px] text-right'>รวมจ่ายสุทธิ</TableHead>
+                    <TableHead className='min-w-[250px]'>
+                      ชื่อผู้รับเงิน
+                    </TableHead>
+                    <TableHead className='min-w-[150px] text-right'>
+                      รวมจ่ายสุทธิ
+                    </TableHead>
                     <TableHead className='w-[80px] sticky right-0 bg-gray-50 z-10'>
                       จัดการ
                     </TableHead>
@@ -784,7 +837,10 @@ const HtmlUploadForm = () => {
                           checked={selectedRows.includes(row.uniqueID)}
                           onCheckedChange={(checked) => {
                             if (checked) {
-                              setSelectedRows((prev) => [...prev, row.uniqueID]);
+                              setSelectedRows((prev) => [
+                                ...prev,
+                                row.uniqueID,
+                              ]);
                             } else {
                               setSelectedRows((prev) =>
                                 prev.filter((id) => id !== row.uniqueID)
