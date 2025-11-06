@@ -1,6 +1,6 @@
 'use client';
 
-import { BookA, FileUp, Home, LineChart, Users, History, Bell } from 'lucide-react';
+import { BookA, Home, LineChart, Users, History, Bell, FileText } from 'lucide-react';
 import Link from 'next/link';
 
 import { useSession } from 'next-auth/react';
@@ -16,10 +16,10 @@ const MenuList = () => {
         Dashboard
       </Link>
       <Link
-        href='/upload'
+        href='/html-upload'
         className='flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary'>
-        <FileUp className='h-4 w-4' />
-        Upload Data
+        <FileText className='h-4 w-4' />
+        Import Data
       </Link>
       <Link
         href='/recipient'

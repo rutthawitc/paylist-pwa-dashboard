@@ -89,15 +89,16 @@ export function TelegramNotifyButton({
       onClick={handleNotify}
       disabled={isLoading || disabled}
       variant='default'
-      className='mt-4'>
+      size='sm'
+      className='flex items-center gap-2 h-9 whitespace-nowrap flex-shrink-0'>
       {isLoading ? (
         <>
-          <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+          <Loader2 className='h-4 w-4 animate-spin' />
           กำลังส่งข้อความ...
         </>
       ) : (
         `ส่งข้อความผ่าน Telegram${
-          session?.user?.area ? ` เขต ${session?.user?.area}` : ''
+          session?.user?.area ? ` เลข ${session?.user?.area}` : ''
         }`
       )}
     </Button>

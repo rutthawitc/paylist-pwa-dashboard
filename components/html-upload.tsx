@@ -659,14 +659,14 @@ const HtmlUploadForm = () => {
             </div>
 
             {/* Action Buttons Row */}
-            <div className='mb-4 flex gap-2 items-stretch'>
+            <div className='mb-4 flex gap-1 items-center flex-nowrap overflow-x-auto'>
               <Button
                 type='button'
                 variant='outline'
                 size='sm'
                 onClick={handlePDPACheck}
                 disabled={isSaving || previewData.length === 0}
-                className='flex items-center gap-2 h-9'>
+                className='flex items-center gap-2 h-9 whitespace-nowrap flex-shrink-0'>
                 <FileText className='w-4 h-4' />
                 ตรวจสอบ PDPA
               </Button>
@@ -676,7 +676,7 @@ const HtmlUploadForm = () => {
                 size='sm'
                 onClick={handleSave}
                 disabled={isSaving || previewData.length === 0}
-                className='flex items-center gap-2 h-9'>
+                className='flex items-center gap-2 h-9 whitespace-nowrap flex-shrink-0'>
                 {isSaving ? (
                   <>
                     <div className='w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin' />
@@ -714,7 +714,7 @@ const HtmlUploadForm = () => {
                   }
                 }}
                 disabled={isSaving}
-                className='flex items-center gap-2 h-9'>
+                className='flex items-center gap-2 h-9 whitespace-nowrap flex-shrink-0'>
                 <Trash2 className='w-4 h-4' />
                 ล้างข้อมูล
               </Button>
