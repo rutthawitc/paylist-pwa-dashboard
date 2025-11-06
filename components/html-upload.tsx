@@ -306,7 +306,7 @@ const HtmlUploadForm = () => {
     }
 
     // Keep first 2 characters, mask the rest with asterisks
-    const keepChars = Math.min(2, word.length);
+    const keepChars = Math.min(3, word.length);
     return word.slice(0, keepChars) + '*'.repeat(word.length - keepChars);
   };
 
@@ -315,8 +315,10 @@ const HtmlUploadForm = () => {
    * Sorted by length (longest first) to match correctly
    */
   const thaiPrefixes = [
-    'นางสาว',
+    'ว่าที่\u00A0ร.ท.',  // ว่าที่ ร.ท. with non-breaking space (char 160)
+    'ว่าที่\u00A0ร.ต.',  // ว่าที่ ร.ต. with non-breaking space (char 160)
     'จ่าสิบเอก',
+    'นางสาว',
     'พลเอก',
     'พลโท',
     'พลตรี',

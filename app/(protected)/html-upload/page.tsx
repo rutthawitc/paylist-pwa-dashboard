@@ -21,7 +21,7 @@ const HtmlUploadPage = async () => {
       </div>
       <div className='text-sm text-gray-600 mb-2'>
         <p>
-          อัปโหลดไฟล์ HTML จากระบบรายงานการจ่ายเงิน (Paylist.htm)
+          อัปโหลดไฟล์ HTML ที่ได้จากการ Export รายงานการจ่ายเงินจากระบบ SAP
           เพื่อแปลงข้อมูลและนำเข้าสู่ระบบ
         </p>
       </div>
