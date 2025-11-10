@@ -65,6 +65,102 @@ A Progressive Web Application (PWA) dashboard for managing payment lists and not
 
 6. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
+## 🚀 PM2 Deployment (Production)
+
+### Prerequisites
+
+- Node.js 18+ installed
+- PM2 installed globally: `npm install -g pm2`
+- PostgreSQL database accessible
+
+### Deployment Steps
+
+1. Clone and install dependencies:
+
+   ```bash
+   git clone https://github.com/your-username/paylist-pwa-dashboard.git
+   cd paylist-pwa-dashboard
+   npm install
+   ```
+
+2. Set up environment variables:
+
+   ```bash
+   cp .env.production.example .env
+   # Edit .env with your production configuration
+   ```
+
+3. Run database migrations:
+
+   ```bash
+   npx prisma migrate deploy
+   npx prisma generate
+   ```
+
+4. Build the application:
+
+   ```bash
+   npm run build
+   ```
+
+5. Create logs directory:
+
+   ```bash
+   mkdir -p logs
+   ```
+
+6. Start with PM2:
+
+   ```bash
+   npm run pm2:start
+   ```
+
+### PM2 Management Commands
+
+```bash
+# Start the application
+npm run pm2:start
+
+# Stop the application
+npm run pm2:stop
+
+# Restart the application
+npm run pm2:restart
+
+# Reload with zero-downtime
+npm run pm2:reload
+
+# Delete from PM2
+npm run pm2:delete
+
+# View logs
+npm run pm2:logs
+
+# Monitor resources
+npm run pm2:monit
+
+# View PM2 status
+pm2 status
+```
+
+### PM2 Auto-Startup
+
+To ensure PM2 starts on system boot:
+
+```bash
+pm2 startup
+pm2 save
+```
+
+### PM2 Configuration
+
+The `ecosystem.config.js` file includes:
+- **Cluster mode**: Utilizes all CPU cores
+- **Auto-restart**: Restarts on crashes
+- **Memory limit**: 1GB per instance
+- **Log rotation**: Separate error/output logs
+- **Zero-downtime reload**: Use `npm run pm2:reload`
+
 ## 🐳 Docker Deployment
 
 ### Prerequisites
