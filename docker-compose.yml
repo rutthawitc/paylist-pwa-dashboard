@@ -1,0 +1,20 @@
+services:
+  paylist-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      # Database connection
+      - DATABASE_URL=${DATABASE_URL}
+      # Simple Auth.js configuration with only essential variables
+      - NEXTAUTH_SECRET=${AUTH_SECRET}
+      - JWT_SECRET=${AUTH_SECRET}
+      - NEXTAUTH_URL=http://localhost:3000
+      - AUTH_TRUST_HOST=true
+      - NEXTAUTH_SECURE_COOKIE=false
+    env_file:
+      - .env
+    restart: unless-stopped

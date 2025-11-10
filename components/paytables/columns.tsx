@@ -18,64 +18,59 @@ export type PayList = {
 
 export const columns: ColumnDef<PayList>[] = [
   {
-    accessorKey: 'doc_no',
-    header: 'เลขที่เช็ค',
+    accessorKey: 'trans_type',
+    header: 'วิธีจ่าย',
     size: 100,
     minSize: 100,
-    maxSize: 120,
-    enableHiding: true,
-    meta: {
-      isHiddenOnMobile: true,
-    },
+    maxSize: 150,
+    enableHiding: false,
   },
   {
-    accessorKey: 'trans_type',
-    header: 'ชนิดการโอน',
-    enableHiding: true,
-    meta: {
-      isHiddenOnMobile: true,
-    },
+    accessorKey: 'doc_no',
+    header: 'คีย์ธนาคาร',
+    size: 120,
+    minSize: 100,
+    maxSize: 150,
+    enableHiding: false,
   },
   {
     accessorKey: 'due_date',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='วันที่กำหนดจ่าย' />
+      <DataTableColumnHeader column={column} title='กำหนดชำระ' />
     ),
     cell: ({ row }) => {
-      return <div className='text-left ml-5'>{row.getValue('due_date')}</div>;
+      return <div className='text-left'>{row.getValue('due_date')}</div>;
     },
+    size: 120,
+    minSize: 100,
+    maxSize: 150,
     enableHiding: false,
   },
   {
     accessorKey: 'recipient',
-    header: 'ผู้รับ',
+    header: 'ชื่อผู้รับเงิน',
+    size: 250,
+    minSize: 200,
+    maxSize: 300,
     enableHiding: false,
   },
   {
     accessorKey: 'amount',
-    header: () => <div className='text-center'>จำนวนเงิน (บาท)</div>,
+    header: () => <div className='text-right'>รวมจ่ายสุทธิ</div>,
     cell: ({ row }) => {
-      return <div className='text-right ml-5'>{row.getValue('amount')}</div>;
+      return <div className='text-right font-mono'>{row.getValue('amount')}</div>;
     },
+    size: 150,
+    minSize: 120,
+    maxSize: 180,
     enableHiding: false,
-  },
-  {
-    accessorKey: 'upload_at',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='วันที่นำเข้าข้อมูล' />
-    ),
-    cell: ({ row }) => {
-      const date: string = row.getValue('upload_at');
-      return <div className='text-center'>{formatDate(date)}</div>;
-    },
-    enableHiding: true,
-    meta: {
-      isHiddenOnMobile: true,
-    },
   },
   {
     accessorKey: 'area',
     header: 'เขต',
+    size: 80,
+    minSize: 60,
+    maxSize: 100,
     enableHiding: true,
     meta: {
       isHiddenOnMobile: true,

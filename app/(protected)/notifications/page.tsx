@@ -38,6 +38,8 @@ export default async function NotificationsPage() {
             userArea={session?.user?.area || ''} 
             divName={session?.user?.div_name || ''}
             depName={session?.user?.dep_name || ''}
+            role={session?.user?.role || ''}
+            isAdmin={session?.user?.role === 'admin'}
           />
         </TabsContent>
       </Tabs>

@@ -62,6 +62,8 @@ interface NotificationSettingsClientProps {
   userArea?: string;
   divName?: string;
   depName?: string;
+  role?: string;
+  isAdmin?: boolean;
 }
 
 export default function NotificationSettingsClient({
@@ -69,6 +71,8 @@ export default function NotificationSettingsClient({
   userArea = '',
   divName = '',
   depName = '',
+  role = '',
+  isAdmin = false,
 }: NotificationSettingsClientProps) {
   const { toast } = useToast();
   const [settings, setSettings] = useState<NotificationSetting[]>([]);
@@ -95,7 +99,11 @@ export default function NotificationSettingsClient({
   const loadSettings = useCallback(async () => {
     setIsLoading(true);
     try {
-      const result = await getNotificationSettings();
+      // ส่ง userArea และ isAdmin ไปเพื่อกรองข้อมูลตามสิทธิ์ของผู้ใช้
+      const result = await getNotificationSettings({
+        userArea: userArea,
+        isAdmin: isAdmin,
+      });
       if (result.success && result.data) {
         setSettings(result.data);
       } else {
@@ -116,7 +124,7 @@ export default function NotificationSettingsClient({
       setIsLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // ตัด toast ออกจาก dependency เพื่อไม่ให้ function ถูกสร้างใหม่เมื่อ toast เปลี่ยน
+  }, [userArea]); // เพิ่ม userArea เป็น dependency เพื่อให้โหลดข้อมูลใหม่เมื่อ userArea เปลี่ยน
 
   useEffect(() => {
     loadSettings();
@@ -126,7 +134,7 @@ export default function NotificationSettingsClient({
   const resetForm = () => {
     setFormData({
       id: '',
-      area: '',
+      area: isAdmin ? '' : userArea, // ให้ admin สามารถกำหนดพื้นที่ได้
       userArea: userArea,
       divName: divName,
       depName: depName,
@@ -389,7 +397,8 @@ export default function NotificationSettingsClient({
                   value={formData.area}
                   onChange={handleInputChange}
                   required
-                  readOnly={isEditing} // ไม่ให้แก้ไขพื้นที่ถ้าเป็นการแก้ไข
+                  readOnly={!isAdmin && !isEditing} // ไม่ให้แก้ไขพื้นที่สำหรับ superuser แต่ admin สามารถแก้ไขได้
+                  disabled={!isAdmin && !isEditing} // ไม่ให้แก้ไขพื้นที่สำหรับ superuser แต่ admin สามารถแก้ไขได้
                 />
               </div>
               <div className='grid grid-cols-4 items-center gap-4'>

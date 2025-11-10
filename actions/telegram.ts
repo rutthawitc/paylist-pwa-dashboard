@@ -120,35 +120,17 @@ export async function sendTelegramNotification(params: SendTelegramParams) {
       
       // สร้างข้อความพร้อมข้อมูลพื้นที่ ถ้าต้องการให้แสดงข้อมูลพื้นที่
       if (includeAreaDetails && areaSetting.area) {
-        // ปรับปรุงข้อความให้มีคำว่า "จาก" และรวมข้อมูลพื้นที่ทั้งหมด
-        let areaInfo = `${areaSetting.area}`;
+        // ใช้เฉพาะชื่อการประปาส่วนภูมิภาคเขต
+        let areaInfo = `การประปาส่วนภูมิภาคเขต ${areaSetting.area}`;
         
-        // เพิ่มข้อมูลจาก areaSetting ถ้ามี
-        if (areaSetting.divName && areaSetting.divName.trim()) {
-          areaInfo += ` ${areaSetting.divName.trim()}`;
-        }
-        
-        if (areaSetting.depName && areaSetting.depName.trim()) {
-          areaInfo += ` ${areaSetting.depName.trim()}`;
-        }
-        
-        // ใส่ข้อมูลจาก parameters (จาก session) หากมีและไม่ซ้ำกับข้อมูลที่มีอยู่แล้ว
-        if (divName && divName.trim() && !areaInfo.includes(divName.trim())) {
-          areaInfo += ` ${divName.trim()}`;
-        }
-        
-        if (depName && depName.trim() && !areaInfo.includes(depName.trim())) {
-          areaInfo += ` ${depName.trim()}`;
-        }
-        
-        console.log(`[Telegram] Combined area info: "${areaInfo}"`);
+        console.log(`[Telegram] Simplified area info: "${areaInfo}"`);
         
         // ตรวจสอบว่าข้อความมีคำว่า "แจ้งเตือนการจ่ายเงิน" อยู่แล้วหรือไม่
         if (message.startsWith("แจ้งเตือนการจ่ายเงิน")) {
           // ตัดคำว่า "แจ้งเตือนการจ่ายเงิน" ออกแล้วเพิ่มรูปแบบใหม่
-          finalMessage = `แจ้งเตือนการจ่ายเงินจาก ${areaInfo}${message.substring("แจ้งเตือนการจ่ายเงิน".length)}`;
+          finalMessage = `แจ้งเตือนการจ่ายเงินจาก${areaInfo}${message.substring("แจ้งเตือนการจ่ายเงิน".length)}`;
         } else {
-          finalMessage = `แจ้งเตือนการจ่ายเงินจาก ${areaInfo} ${message}`;
+          finalMessage = `แจ้งเตือนการจ่ายเงินจาก${areaInfo} ${message}`;
         }
         
         console.log(`[Telegram] Enhanced message with area details: ${areaInfo}`);

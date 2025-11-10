@@ -21,12 +21,14 @@ interface TelegramNotifyButtonProps {
   messageCount: number;
   onNotificationResult: (result: { success?: string; error?: string }) => void;
   area?: string;
+  disabled?: boolean;
 }
 
 export function TelegramNotifyButton({
   messageCount,
   onNotificationResult,
   area,
+  disabled,
 }: TelegramNotifyButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { data: session } = useSession();
@@ -34,7 +36,7 @@ export function TelegramNotifyButton({
 
   const notifyDate = formatThaiDate(new Date());
 
-  const noti_message = `แจ้งเตือนการจ่ายเงิน กปภ.ข.๖ ประจำวันที่ ${notifyDate} มีจำนวน ${messageCount.toString()} รายการ
+  const noti_message = `แจ้งเตือนการจ่ายเงิน ประจำวันที่ ${notifyDate} มีจำนวน ${messageCount.toString()} รายการ
 
 กรุณาตรวจสอบในระบบ http://110.76.155.100:10002/`;
 
@@ -85,17 +87,18 @@ export function TelegramNotifyButton({
   return (
     <Button
       onClick={handleNotify}
-      disabled={isLoading}
+      disabled={isLoading || disabled}
       variant='default'
-      className='mt-4'>
+      size='sm'
+      className='flex items-center gap-2 h-9 whitespace-nowrap flex-shrink-0'>
       {isLoading ? (
         <>
-          <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+          <Loader2 className='h-4 w-4 animate-spin' />
           กำลังส่งข้อความ...
         </>
       ) : (
         `ส่งข้อความผ่าน Telegram${
-          session?.user?.area ? ` เขต ${session?.user?.area}` : ''
+          session?.user?.area ? ` เลข ${session?.user?.area}` : ''
         }`
       )}
     </Button>

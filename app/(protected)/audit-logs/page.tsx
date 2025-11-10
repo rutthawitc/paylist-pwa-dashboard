@@ -77,7 +77,7 @@ export default function AuditLogsPage() {
     } finally {
       setLoading(false);
     }
-  }, [pagination.limit, filters]);
+  }, [pagination.page, pagination.limit, filters]);
 
   useEffect(() => {
     fetchLogs();
