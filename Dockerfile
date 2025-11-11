@@ -6,9 +6,9 @@ WORKDIR /app
 
 # Install dependencies required for Prisma with Debian
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    openssl \
-    ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+  openssl \
+  ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
 
 # Install dependencies based on the preferred package manager
 COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
@@ -25,9 +25,9 @@ WORKDIR /app
 COPY . .
 
 # Set consistent JWT environment variables during build
-ENV NEXTAUTH_SECRET=6PXH2hIl9/02wPJ3uOPYjT/gHTp6K61n+85vxkAFXz4=
-ENV JWT_SECRET=6PXH2hIl9/02wPJ3uOPYjT/gHTp6K61n+85vxkAFXz4=
-ENV NEXTAUTH_URL=http://localhost:3000
+ENV NEXTAUTH_SECRET="6PXH2hIl9/02wPJ3uOPYjT/gHTp6K61n+85vxkAFXz4="
+ENV JWT_SECRET="6PXH2hIl9/02wPJ3uOPYjT/gHTp6K61n+85vxkAFXz4="
+ENV NEXTAUTH_URL="http://localhost:3000"
 
 # Generate Prisma client
 RUN npx prisma generate
@@ -43,14 +43,14 @@ RUN \
 FROM base AS runner
 WORKDIR /app
 
-ENV NODE_ENV production
+ENV NODE_ENV="production"
 
 # Disable Next.js telemetry during runtime
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED="1"
 
 # Add a non-root user
 RUN groupadd --system --gid 1001 nodejs && \
-    useradd --system --uid 1001 --gid nodejs nextjs
+  useradd --system --uid 1001 --gid nodejs nextjs
 
 # Set the correct permission for prerender cache
 RUN mkdir -p .next/cache && chown -R nextjs:nodejs .next/cache
@@ -62,14 +62,14 @@ COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modul
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 
 # Auth.js configuration
-ENV NEXTAUTH_SECRET=6PXH2hIl9/02wPJ3uOPYjT/gHTp6K61n+85vxkAFXz4=
-ENV JWT_SECRET=6PXH2hIl9/02wPJ3uOPYjT/gHTp6K61n+85vxkAFXz4=
-ENV NEXTAUTH_URL=http://localhost:3000
-ENV NEXTAUTH_URL_INTERNAL=http://localhost:3000
-ENV AUTH_TRUST_HOST=true
-ENV NEXTAUTH_COOKIE_DOMAIN=localhost
-ENV NEXTAUTH_SECURE_COOKIE=false
-ENV NEXTAUTH_COOKIE_PATH=/
+ENV NEXTAUTH_SECRET="6PXH2hIl9/02wPJ3uOPYjT/gHTp6K61n+85vxkAFXz4="
+ENV JWT_SECRET="6PXH2hIl9/02wPJ3uOPYjT/gHTp6K61n+85vxkAFXz4="
+ENV NEXTAUTH_URL="http://localhost:3000"
+ENV NEXTAUTH_URL_INTERNAL="http://localhost:3000"
+ENV AUTH_TRUST_HOST="true"
+ENV NEXTAUTH_COOKIE_DOMAIN="localhost"
+ENV NEXTAUTH_SECURE_COOKIE="false"
+ENV NEXTAUTH_COOKIE_PATH="/"
 
 USER nextjs
 

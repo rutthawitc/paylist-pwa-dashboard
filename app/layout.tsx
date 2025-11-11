@@ -1,10 +1,14 @@
 import type { Metadata } from 'next';
-import { Inter as FontSans } from 'next/font/google';
+import { Kanit as FontSans } from 'next/font/google';
 import './globals.css';
 import { cn } from '@/lib/utils';
 import { SessionWarning } from '@/components/session-warning';
 
-const fontSans = FontSans({ subsets: ['latin'], variable: '--font-sans' });
+const fontSans = FontSans({
+  weight: ['300', '400', '500', '600', '700'],
+  subsets: ['thai', 'latin'],
+  variable: '--font-sans',
+});
 
 export const metadata: Metadata = {
   title: 'ระบบแจ้งรายการจ่ายเงิน กปภ.ข.๖',

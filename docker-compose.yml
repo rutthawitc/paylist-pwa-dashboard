@@ -1,20 +1,30 @@
+version: '3.8'
+
 services:
   paylist-app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: rutthawitc/paylist-pwa-dashboard:latest
+    container_name: paylist-dashboard
     ports:
-      - "3000:3000"
+      - "3003:3000"
     environment:
       - NODE_ENV=production
-      # Database connection
-      - DATABASE_URL=${DATABASE_URL}
-      # Simple Auth.js configuration with only essential variables
-      - NEXTAUTH_SECRET=${AUTH_SECRET}
-      - JWT_SECRET=${AUTH_SECRET}
-      - NEXTAUTH_URL=http://localhost:3000
-      - AUTH_TRUST_HOST=true
-      - NEXTAUTH_SECURE_COOKIE=false
     env_file:
       - .env
     restart: unless-stopped
+    volumes:
+      # Persist SQLite database files
+      - ./data:/app/data
+      # Persist Prisma migrations
+      - ./prisma-data:/app/prisma
+    networks:
+      - paylist-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  paylist-network:
+    driver: bridge

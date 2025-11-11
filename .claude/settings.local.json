@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\n✨ (html-upload): implement HTML payment report upload feature with data parsing and preview\n\nIntroduces a new protected route and component for uploading and parsing HTML payment reports. The feature enables admin and superuser roles to import payment data directly from HTML files (Paylist.htm format).\n\nKey implementations:\n- New protected route at /app/(protected)/html-upload/page.tsx with admin/superuser authorization\n- HtmlUploadForm component with drag-and-drop file upload interface\n- Advanced HTML parsing using regex to extract payment data from formatted HTML documents\n- Handles non-breaking spaces (char 160) and various data layout formats\n- Maps payment method codes: E=Direct Credit, M=Media Clearing, C=Cheque\n- Displays parsed data in filterable table showing 5 columns: วิธีจ่าย, คีย์ธนาคาร, กำหนดชำระ, ชื่อผู้รับเงิน, รวมจ่ายสุทธิ\n- Implements row selection and bulk deletion functionality with checkbox controls\n- Prevents duplicate entries with proper loop iteration management\n- Includes validation for file type (.html, .htm) and size (max 10MB)\n- Provides user feedback via toast notifications for upload success and validation errors\n- Progress bar shows upload processing status (30%, 60%, 90%, 100%)\n\n📝 (README.md): update documentation with comprehensive project overview and setup instructions\n\nUpdated README.md with detailed sections for:\n- Project description and feature highlights\n- Local development setup instructions\n- Docker deployment and containerization guide\n- Project structure overview\n- Environment variables configuration\n- License and acknowledgments\n\n🧪 Feature testing: Confirmed working implementation with successful HTML file parsing and data display\n\n🤖 Generated with Claude Code\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(npm run build:*)",
+      "Bash(pkill:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\n✨ (html-upload.tsx): separate action buttons from note box for improved UI layout\n\nReorganizes the HTML upload component''s UI structure for better visual hierarchy and user experience:\n- Split the combined note and buttons section into two distinct areas\n- Note box (blue info box) appears first with instructions\n- Action buttons row appears directly below with clear spacing\n- All buttons use consistent small size (size=''sm'') for compact appearance\n- Reduced button gap from gap-3 to gap-2 for tighter spacing\n- Buttons maintain semantic order: PDPA Check → Save → Telegram → Clear Data\n\nThis layout improves the workflow clarity: users see instructions first, then available actions, then data preview.\n\n🤖 Generated with Claude Code\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git commit:*)",
+      "Bash(find:*)",
+      "Bash(cat:*)",
+      "Bash(git log:*)",
+      "Bash(gh pr create:*)",
+      "Bash(git push:*)",
+      "Bash(gh pr merge:*)",
+      "Bash(gh pr view:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
