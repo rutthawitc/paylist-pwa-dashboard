@@ -593,10 +593,10 @@ const HtmlUploadForm = () => {
     if (!amount || amount === '-') return '-';
     const num = parseFloat(amount);
     if (isNaN(num)) return amount;
-    return new Intl.NumberFormat('th-TH', {
+    return num.toLocaleString('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
-    }).format(num);
+    });
   };
 
   const getPaymentMethodLabel = (method: string): string => {

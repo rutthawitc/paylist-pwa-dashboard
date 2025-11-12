@@ -58,7 +58,14 @@ export const columns: ColumnDef<PayList>[] = [
     accessorKey: 'amount',
     header: () => <div className='text-right'>รวมจ่ายสุทธิ</div>,
     cell: ({ row }) => {
-      return <div className='text-right font-mono'>{row.getValue('amount')}</div>;
+      const amount = row.getValue('amount') as string;
+      const formatted = amount && amount !== '-'
+        ? parseFloat(amount).toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })
+        : amount;
+      return <div className='text-right font-mono'>{formatted}</div>;
     },
     size: 150,
     minSize: 120,
