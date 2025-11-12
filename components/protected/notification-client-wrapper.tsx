@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { lineNotify } from '@/lib/linenotify';
 import { telegramNotify } from '@/lib/telegramnotify';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -34,7 +32,7 @@ interface NotificationWrapperProps {
 
 export default function NotificationClientWrapper({
   title = 'การแจ้งเตือน',
-  description = 'ส่งข้อความแจ้งเตือนไปยัง Line Notify หรือ Telegram Bot',
+  description = 'ส่งข้อความแจ้งเตือนไปยัง Telegram Bot',
   userId,
 }: NotificationWrapperProps) {
   const [message, setMessage] = useState('');
@@ -62,44 +60,6 @@ export default function NotificationClientWrapper({
 
     loadAreas();
   }, []);
-
-  const handleLineNotify = async () => {
-    if (!message) return;
-
-    setIsLoading(true);
-    try {
-      // ส่งข้อความไปที่ server โดยไม่ต้องเพิ่ม URL ที่นี่ เพราะจะถูกเพิ่มที่ server
-      const success = await lineNotify({
-        message,
-        area: selectedArea === 'default' ? undefined : selectedArea,
-        userId,
-        userArea: session?.user?.area || '',
-        includeAreaDetails: true,
-      });
-      setMessage('');
-      if (success) {
-        toast({
-          title: 'ส่งข้อความสำเร็จ',
-          description: 'ส่งแจ้งเตือนผ่าน Line Notify สำเร็จแล้ว',
-          variant: 'success'
-        });
-      } else {
-        toast({
-          title: 'เกิดข้อผิดพลาด',
-          description: 'ไม่สามารถส่งแจ้งเตือนผ่าน Line Notify ได้',
-          variant: 'destructive'
-        });
-      }
-    } catch (error) {
-      toast({
-        title: 'เกิดข้อผิดพลาด',
-        description: 'ไม่สามารถส่งแจ้งเตือนผ่าน Line Notify ได้',
-        variant: 'destructive'
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleTelegramNotify = async () => {
     if (!message) return;
@@ -149,69 +109,46 @@ export default function NotificationClientWrapper({
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent>
-        <Tabs
-          defaultValue="line"
-          className="w-full"
-        >
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="line">Line Notify</TabsTrigger>
-            <TabsTrigger value="telegram">Telegram</TabsTrigger>
-          </TabsList>
-
-          <div className="mt-4 space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">พื้นที่</label>
-              <Select
-                value={selectedArea}
-                onValueChange={setSelectedArea}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="เลือกพื้นที่ (หรือเว้นว่างสำหรับค่าเริ่มต้น)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="default">ค่าเริ่มต้น (Default)</SelectItem>
-                  {areas.map((area) => (
-                    <SelectItem key={area.id} value={area.area}>
-                      {area.area} {area.description ? `- ${area.description}` : ''}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">ข้อความ</label>
-              <Textarea
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder="ข้อความที่ต้องการส่ง"
-                rows={4}
-              />
-            </div>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">พื้นที่</label>
+            <Select
+              value={selectedArea}
+              onValueChange={setSelectedArea}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="เลือกพื้นที่ (หรือเว้นว่างสำหรับค่าเริ่มต้น)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="default">ค่าเริ่มต้น (Default)</SelectItem>
+                {areas.map((area) => (
+                  <SelectItem key={area.id} value={area.area}>
+                    {area.area} {area.description ? `- ${area.description}` : ''}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          <TabsContent value="line" className="pt-4">
-            <div className="flex justify-end">
-              <Button
-                onClick={handleLineNotify}
-                disabled={!message || isLoading}
-              >
-                {isLoading ? 'กำลังส่ง...' : 'ส่งข้อความผ่าน Line'}
-              </Button>
-            </div>
-          </TabsContent>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">ข้อความ</label>
+            <Textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="ข้อความที่ต้องการส่ง"
+              rows={4}
+            />
+          </div>
 
-          <TabsContent value="telegram" className="pt-4">
-            <div className="flex justify-end">
-              <Button
-                onClick={handleTelegramNotify}
-                disabled={!message || isLoading}
-              >
-                {isLoading ? 'กำลังส่ง...' : 'ส่งข้อความผ่าน Telegram'}
-              </Button>
-            </div>
-          </TabsContent>
-        </Tabs>
+          <div className="flex justify-end pt-4">
+            <Button
+              onClick={handleTelegramNotify}
+              disabled={!message || isLoading}
+            >
+              {isLoading ? 'กำลังส่ง...' : 'ส่งข้อความผ่าน Telegram'}
+            </Button>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

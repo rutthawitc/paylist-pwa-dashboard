@@ -6,7 +6,7 @@ import NotificationSettingsClient from '@/app/(protected)/notifications/notifica
 
 export const metadata: Metadata = {
   title: 'การแจ้งเตือน | Paylist',
-  description: 'ส่งข้อความแจ้งเตือนผ่าน Line Notify และ Telegram',
+  description: 'ส่งข้อความแจ้งเตือนผ่าน Telegram',
 };
 
 export default async function NotificationsPage() {

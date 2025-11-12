@@ -89,7 +89,6 @@ export default function NotificationSettingsClient({
     divName: divName,
     depName: depName,
     description: '',
-    lineToken: '',
     telegramBotToken: '',
     telegramChatId: '',
     isActive: true,
@@ -139,7 +138,6 @@ export default function NotificationSettingsClient({
       divName: divName,
       depName: depName,
       description: '',
-      lineToken: '',
       telegramBotToken: '',
       telegramChatId: '',
       isActive: true,
@@ -162,7 +160,6 @@ export default function NotificationSettingsClient({
       divName: divName,
       depName: depName,
       description: setting.description || '',
-      lineToken: setting.lineToken || '',
       telegramBotToken: setting.telegramBotToken || '',
       telegramChatId: setting.telegramChatId || '',
       isActive: setting.isActive,
@@ -187,7 +184,6 @@ export default function NotificationSettingsClient({
           divName: formData.divName,
           depName: formData.depName,
           description: formData.description || undefined,
-          lineToken: formData.lineToken || undefined,
           telegramBotToken: formData.telegramBotToken || undefined,
           telegramChatId: formData.telegramChatId || undefined,
           isActive: formData.isActive,
@@ -200,7 +196,6 @@ export default function NotificationSettingsClient({
           divName: formData.divName,
           depName: formData.depName,
           description: formData.description || undefined,
-          lineToken: formData.lineToken || undefined,
           telegramBotToken: formData.telegramBotToken || undefined,
           telegramChatId: formData.telegramChatId || undefined,
           isActive: formData.isActive,
@@ -306,7 +301,6 @@ export default function NotificationSettingsClient({
                   <TableRow>
                     <TableHead>พื้นที่</TableHead>
                     <TableHead>คำอธิบาย</TableHead>
-                    <TableHead>Line Token</TableHead>
                     <TableHead>Telegram</TableHead>
                     <TableHead className='text-center'>สถานะ</TableHead>
                     <TableHead className='text-right'>จัดการ</TableHead>
@@ -319,11 +313,6 @@ export default function NotificationSettingsClient({
                         {setting.area}
                       </TableCell>
                       <TableCell>{setting.description || '-'}</TableCell>
-                      <TableCell>
-                        {setting.lineToken
-                          ? `${setting.lineToken.substring(0, 6)}...`
-                          : 'ไม่ได้ตั้งค่า'}
-                      </TableCell>
                       <TableCell>
                         {setting.telegramBotToken
                           ? `${setting.telegramBotToken.substring(0, 6)}...`
@@ -456,19 +445,6 @@ export default function NotificationSettingsClient({
                   placeholder='คำอธิบายเพิ่มเติม'
                   className='col-span-3'
                   value={formData.description}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div className='grid grid-cols-4 items-center gap-4'>
-                <Label htmlFor='lineToken' className='text-right'>
-                  Line Token
-                </Label>
-                <Input
-                  id='lineToken'
-                  name='lineToken'
-                  placeholder='Line Notify Token'
-                  className='col-span-3'
-                  value={formData.lineToken}
                   onChange={handleInputChange}
                 />
               </div>
