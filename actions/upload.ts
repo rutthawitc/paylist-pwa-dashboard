@@ -4,6 +4,7 @@ import { PaylistType } from '@/schemas';
 import { db } from '@/lib/db';
 import { auth } from '@/auth';
 import { createAuditLog } from '@/lib/audit-logger';
+import { revalidatePath } from 'next/cache';
 
 export const uploadPaylist = async (values: PaylistType[]) => {
   console.log(values);
@@ -39,6 +40,10 @@ export const uploadPaylist = async (values: PaylistType[]) => {
         },
       });
     }
+
+    // Revalidate dashboard and related pages to show updated data
+    revalidatePath('/dashboard');
+    revalidatePath('/');
 
     console.log('Paylist uploaded successfully');
     return { success: 'Upload Success' };
