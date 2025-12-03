@@ -90,14 +90,14 @@ function convertPaymentHTMLToData(htmlContent: string): PaymentRow[] {
   for (let i = 0; i < lines.length; i++) {
     const text = lines[i].textContent?.trim() || '';
 
-    // ตรวจหาบรรทัดที่มีข้อมูลรหัสเจ้าหนี้ (รูปแบบ ตัวเลข 6 หลัก ตามด้วยชื่อบริษัท)
-    if (/^\d{6}\s+[หบ].*/.test(text)) {
+    // ตรวจหาบรรทัดที่มีข้อมูลรหัสเจ้าหนี้ (รูปแบบ ตัวเลข 6 หลัก หรือ EI0* ตามด้วยชื่อบริษัท)
+    if (/^(\d{6}|EI0\d+)\s+[หบน].*/.test(text)) {
       // เริ่มเก็บข้อมูลใหม่
       currentPayment = {};
 
-      // แยกรหัสเจ้าหนี้และชื่อ
+      // แยกรหัสเจ้าหนี้และชื่อ (รองรับทั้ง 6 digits และ EI0* pattern)
       const vendorMatch = text.match(
-        /^(\d{6})\s+(.*?)\s+ช\.แหล่งเงินทุนกปภ\.$/
+        /^(\d{6}|EI0\d+)\s+(.*?)\s+ช\.แหล่งเงินทุนกปภ\.$/
       );
       if (vendorMatch) {
         currentPayment['รหัสเจ้าหนี้'] = vendorMatch[1];
@@ -397,15 +397,18 @@ const HtmlUploadForm = () => {
 
   /**
    * Convert HTML PaymentRow format to XLS PaylistType format
+   * Filters out employee records (EI0*) before sending to server
    */
   const convertToPaylistFormat = (): PaylistType[] => {
-    return previewData.map((row) => ({
-      doc_no: row.คีย์ธนาคาร,
-      trans_type: getPaymentMethodLabel(row.วิธีการจ่าย),
-      due_date: row.กำหนดชำระ,
-      recipient: row.ชื่อผู้รับเงิน,
-      amount: row.รวมจ่ายสุทธิ,
-    }));
+    return previewData
+      .filter((row) => !row.isEmployee) // Filter out employee records on client side
+      .map((row) => ({
+        doc_no: row.คีย์ธนาคาร,
+        trans_type: getPaymentMethodLabel(row.วิธีการจ่าย),
+        due_date: row.กำหนดชำระ,
+        recipient: row.ชื่อผู้รับเงิน,
+        amount: row.รวมจ่ายสุทธิ,
+      }));
   };
 
   /**
