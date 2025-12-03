@@ -1,11 +1,9 @@
-version: '3.8'
-
 services:
   paylist-app:
     image: rutthawitc/paylist-pwa-dashboard:latest
     container_name: paylist-dashboard
     ports:
-      - "3003:3000"
+      - '3003:3000'
     environment:
       - NODE_ENV=production
     env_file:
@@ -19,7 +17,7 @@ services:
     networks:
       - paylist-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      test: ['CMD', 'curl', '-f', 'http://localhost:3000']
       interval: 30s
       timeout: 10s
       retries: 3

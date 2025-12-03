@@ -65,6 +65,10 @@ export interface PaymentRow {
   รวมจ่ายสุทธิ: string;
 }
 
+export interface PaymentRowWithFilterInfo extends PaymentRow {
+  isEmployee?: boolean; // Flag to indicate if this is an employee record (EI0*)
+}
+
 /**
  * ฟังก์ชันสำหรับแปลงรายงานการจ่ายเงินจาก HTML เป็นข้อมูลที่จัดเรียบร้อย
  */
@@ -278,7 +282,7 @@ function convertPaymentHTMLToData(htmlContent: string): PaymentRow[] {
 const HtmlUploadForm = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [previewData, setPreviewData] = useState<PaymentRow[]>([]);
+  const [previewData, setPreviewData] = useState<PaymentRowWithFilterInfo[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -504,16 +508,28 @@ const HtmlUploadForm = () => {
         throw new Error('ไม่พบข้อมูลการจ่ายเงินในไฟล์ HTML');
       }
 
-      setPreviewData(payments);
+      // Mark employee records automatically using EI0* pattern
+      const paymentsWithEmployeeFlag = payments.map((row) => ({
+        ...row,
+        isEmployee: /^EI0\d+$/i.test(row.รหัสเจ้าหนี้),
+      }));
+
+      setPreviewData(paymentsWithEmployeeFlag);
       setUploadProgress(100);
+
+      // Count employees
+      const employeeCount = paymentsWithEmployeeFlag.filter(r => r.isEmployee).length;
+      const nonEmployeeCount = paymentsWithEmployeeFlag.length - employeeCount;
 
       // Debug: Log first payment to verify data
       console.log('First payment record:', payments[0]);
       console.log('Total payments:', payments.length);
+      console.log('Employee records:', employeeCount);
+      console.log('Non-employee records:', nonEmployeeCount);
 
       toast({
         title: 'อ่านไฟล์สำเร็จ',
-        description: `พบข้อมูลทั้งหมด ${payments.length} รายการ`,
+        description: `พบข้อมูล ${payments.length} รายการ (กรองพนักงาน ${employeeCount} รายการ)`,
         duration: 3000,
       });
     } catch (err) {
@@ -704,6 +720,12 @@ const HtmlUploadForm = () => {
                 ตรวจสอบความถูกต้องของข้อมูลก่อนนำไปใช้งาน
                 คุณสามารถเลือกและลบรายการที่ไม่ต้องการได้
               </p>
+              {previewData.some(r => r.isEmployee) && (
+                <p className='text-sm text-orange-700 mt-2'>
+                  <strong>⚠️ การกรองพนักงาน:</strong> รายการที่มีพื้นหลังสีเหลืองคือพนักงาน (รหัสเจ้าหนี้ EI0*)
+                  จะไม่ถูกบันทึกลงฐานข้อมูล
+                </p>
+              )}
             </div>
 
             {/* Action Buttons Row */}
@@ -771,8 +793,13 @@ const HtmlUploadForm = () => {
             <div className='flex justify-between items-center my-4'>
               <p className='text-sm text-gray-600'>
                 ข้อมูลทั้งหมด: {previewData.length} รายการ
+                {previewData.some(r => r.isEmployee) && (
+                  <span className='text-orange-600 ml-2 font-medium'>
+                    (พนักงาน {previewData.filter(r => r.isEmployee).length} รายการ - จะถูกกรองออก)
+                  </span>
+                )}
                 {selectedRows.length > 0 &&
-                  ` (เลือก ${selectedRows.length} รายการ)`}
+                  ` | เลือก ${selectedRows.length} รายการ`}
               </p>
               <Button
                 type='button'
@@ -833,7 +860,11 @@ const HtmlUploadForm = () => {
                 </TableHeader>
                 <TableBody>
                   {previewData.map((row) => (
-                    <TableRow key={row.uniqueID} className='hover:bg-gray-50'>
+                    <TableRow
+                      key={row.uniqueID}
+                      className={`hover:bg-gray-50 ${
+                        row.isEmployee ? 'bg-yellow-50 border-l-4 border-orange-400' : ''
+                      }`}>
                       <TableCell className='sticky left-0 bg-white z-10'>
                         <Checkbox
                           checked={selectedRows.includes(row.uniqueID)}
@@ -855,7 +886,14 @@ const HtmlUploadForm = () => {
                       <TableCell>
                         {getPaymentMethodLabel(row.วิธีการจ่าย)}
                       </TableCell>
-                      <TableCell>{row.คีย์ธนาคาร}</TableCell>
+                      <TableCell>
+                        {row.คีย์ธนาคาร}
+                        {row.isEmployee && (
+                          <span className='ml-2 text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded font-medium'>
+                            👤 พนักงาน
+                          </span>
+                        )}
+                      </TableCell>
                       <TableCell>{row.กำหนดชำระ}</TableCell>
                       <TableCell>{row.ชื่อผู้รับเงิน}</TableCell>
                       <TableCell className='text-right font-mono'>

@@ -14,7 +14,8 @@
       "Bash(gh pr create:*)",
       "Bash(git push:*)",
       "Bash(gh pr merge:*)",
-      "Bash(gh pr view:*)"
+      "Bash(gh pr view:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []
