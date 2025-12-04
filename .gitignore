@@ -39,3 +39,10 @@ next-env.d.ts
 #SQlite
 /database.sqlite
 dev.db
+
+# Reference Docs
+docs/*
+
+# Claude AI
+.claude_config.json
+settings.local.json

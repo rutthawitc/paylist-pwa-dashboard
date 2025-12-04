@@ -1,12 +1,37 @@
 import type { Metadata } from 'next';
-import { Kanit as FontSans } from 'next/font/google';
+import localFont from 'next/font/local';
 import './globals.css';
 import { cn } from '@/lib/utils';
 import { SessionWarning } from '@/components/session-warning';
 
-const fontSans = FontSans({
-  weight: ['300', '400', '500', '600', '700'],
-  subsets: ['thai', 'latin'],
+const fontSans = localFont({
+  src: [
+    {
+      path: '../public/fonts/kanit/Kanit-Light.ttf',
+      weight: '300',
+      style: 'normal',
+    },
+    {
+      path: '../public/fonts/kanit/Kanit-Regular.ttf',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../public/fonts/kanit/Kanit-Medium.ttf',
+      weight: '500',
+      style: 'normal',
+    },
+    {
+      path: '../public/fonts/kanit/Kanit-SemiBold.ttf',
+      weight: '600',
+      style: 'normal',
+    },
+    {
+      path: '../public/fonts/kanit/Kanit-Bold.ttf',
+      weight: '700',
+      style: 'normal',
+    },
+  ],
   variable: '--font-sans',
 });
 
