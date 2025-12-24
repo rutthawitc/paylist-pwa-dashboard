@@ -67,6 +67,7 @@ export interface PaymentRow {
 
 export interface PaymentRowWithFilterInfo extends PaymentRow {
   isEmployee?: boolean; // Flag to indicate if this is an employee record (EI0*)
+  isMCVendor?: boolean; // Flag to indicate if this is an MC vendor record (MC*)
 }
 
 /**
@@ -90,15 +91,15 @@ function convertPaymentHTMLToData(htmlContent: string): PaymentRow[] {
   for (let i = 0; i < lines.length; i++) {
     const text = lines[i].textContent?.trim() || '';
 
-    // ตรวจหาบรรทัดที่มีข้อมูลรหัสเจ้าหนี้ (รูปแบบ ตัวเลข 6 หลัก หรือ EI0* ตามด้วยชื่อบริษัท)
+    // ตรวจหาบรรทัดที่มีข้อมูลรหัสเจ้าหนี้ (รูปแบบ ตัวเลข 6 หลัก หรือ EI0* หรือ MC* ตามด้วยชื่อบริษัท)
     // เปลี่ยนจากเดิม [หบน].* เป็น .*ช.แหล่งเงินทุนกปภ (ไม่จำกัดอักษรแรก รองรับเจ้าหนี้ขาจร เป็นต้น)
-    if (/^(\d{6}|EI0\d+)\s+.*ช\.แหล่งเงินทุนกปภ/.test(text)) {
+    if (/^(\d{6}|EI0\d+|MC\d+)\s+.*ช\.แหล่งเงินทุนกปภ/.test(text)) {
       // เริ่มเก็บข้อมูลใหม่
       currentPayment = {};
 
-      // แยกรหัสเจ้าหนี้และชื่อ (รองรับทั้ง 6 digits และ EI0* pattern)
+      // แยกรหัสเจ้าหนี้และชื่อ (รองรับทั้ง 6 digits และ EI0* และ MC* pattern)
       const vendorMatch = text.match(
-        /^(\d{6}|EI0\d+)\s+(.*?)\s+ช\.แหล่งเงินทุนกปภ\.$/
+        /^(\d{6}|EI0\d+|MC\d+)\s+(.*?)\s+ช\.แหล่งเงินทุนกปภ\.$/
       );
       if (vendorMatch) {
         currentPayment['รหัสเจ้าหนี้'] = vendorMatch[1];
@@ -283,7 +284,9 @@ function convertPaymentHTMLToData(htmlContent: string): PaymentRow[] {
 const HtmlUploadForm = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [previewData, setPreviewData] = useState<PaymentRowWithFilterInfo[]>([]);
+  const [previewData, setPreviewData] = useState<PaymentRowWithFilterInfo[]>(
+    []
+  );
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -293,6 +296,9 @@ const HtmlUploadForm = () => {
 
   // State for employee import selection
   const [employeeImportRows, setEmployeeImportRows] = useState<string[]>([]);
+
+  // State for MC vendor import selection
+  const [mcVendorImportRows, setMcVendorImportRows] = useState<string[]>([]);
 
   // State for save and database operations
   const [isSaving, setIsSaving] = useState(false);
@@ -323,8 +329,8 @@ const HtmlUploadForm = () => {
    * Sorted by length (longest first) to match correctly
    */
   const thaiPrefixes = [
-    'ว่าที่\u00A0ร.ท.',  // ว่าที่ ร.ท. with non-breaking space (char 160)
-    'ว่าที่\u00A0ร.ต.',  // ว่าที่ ร.ต. with non-breaking space (char 160)
+    'ว่าที่\u00A0ร.ท.', // ว่าที่ ร.ท. with non-breaking space (char 160)
+    'ว่าที่\u00A0ร.ต.', // ว่าที่ ร.ต. with non-breaking space (char 160)
     'จ่าสิบเอก',
     'นางสาว',
     'พลเอก',
@@ -401,8 +407,8 @@ const HtmlUploadForm = () => {
 
   /**
    * Convert HTML PaymentRow format to XLS PaylistType format
-   * Filters out employee records (EI0*) before sending to server
-   * UNLESS they are explicitly selected for import via employeeImportRows
+   * Filters out employee records (EI0*) and MC vendor records (MC*) before sending to server
+   * UNLESS they are explicitly selected for import via employeeImportRows/mcVendorImportRows
    */
   const convertToPaylistFormat = (): PaylistType[] => {
     return previewData
@@ -411,7 +417,11 @@ const HtmlUploadForm = () => {
         if (row.isEmployee) {
           return employeeImportRows.includes(row.uniqueID);
         }
-        // Non-employee records are always included
+        // If MC vendor, only include if explicitly selected for import
+        if (row.isMCVendor) {
+          return mcVendorImportRows.includes(row.uniqueID);
+        }
+        // Other records are always included
         return true;
       })
       .map((row) => ({
@@ -524,16 +534,20 @@ const HtmlUploadForm = () => {
       }
 
       // Mark employee records automatically using EI0* pattern
+      // Mark MC vendor records automatically using MC* pattern
       const paymentsWithEmployeeFlag = payments.map((row) => ({
         ...row,
         isEmployee: /^EI0\d+$/i.test(row.รหัสเจ้าหนี้),
+        isMCVendor: /^MC\d+$/i.test(row.รหัสเจ้าหนี้),
       }));
 
       setPreviewData(paymentsWithEmployeeFlag);
       setUploadProgress(100);
 
       // Count employees
-      const employeeCount = paymentsWithEmployeeFlag.filter(r => r.isEmployee).length;
+      const employeeCount = paymentsWithEmployeeFlag.filter(
+        (r) => r.isEmployee
+      ).length;
       const nonEmployeeCount = paymentsWithEmployeeFlag.length - employeeCount;
 
       // Debug: Log first payment to verify data
@@ -735,9 +749,10 @@ const HtmlUploadForm = () => {
                 ตรวจสอบความถูกต้องของข้อมูลก่อนนำไปใช้งาน
                 คุณสามารถเลือกและลบรายการที่ไม่ต้องการได้
               </p>
-              {previewData.some(r => r.isEmployee) && (
+              {previewData.some((r) => r.isEmployee) && (
                 <p className='text-sm text-orange-700 mt-2'>
-                  <strong>⚠️ การกรองพนักงาน:</strong> รายการที่มีพื้นหลังสีเหลืองคือพนักงาน (รหัสเจ้าหนี้ EI0*)
+                  <strong>⚠️ การกรองพนักงาน:</strong>{' '}
+                  รายการที่มีพื้นหลังสีเหลืองคือพนักงาน (รหัสเจ้าหนี้ EI0*)
                   จะไม่ถูกบันทึกลงฐานข้อมูล
                 </p>
               )}
@@ -809,11 +824,28 @@ const HtmlUploadForm = () => {
             <div className='flex justify-between items-center my-4'>
               <p className='text-sm text-gray-600'>
                 ข้อมูลทั้งหมด: {previewData.length} รายการ
-                {previewData.some(r => r.isEmployee) && (
+                {previewData.some((r) => r.isEmployee) && (
                   <span className='text-orange-600 ml-2 font-medium'>
-                    (พนักงาน {previewData.filter(r => r.isEmployee).length} รายการ
+                    (พนักงาน {previewData.filter((r) => r.isEmployee).length}{' '}
+                    รายการ
                     {employeeImportRows.length > 0 && (
-                      <span className='text-green-600'> · เลือกนำเข้า {employeeImportRows.length} รายการ</span>
+                      <span className='text-green-600'>
+                        {' '}
+                        · เลือกนำเข้า {employeeImportRows.length} รายการ
+                      </span>
+                    )}
+                    )
+                  </span>
+                )}
+                {previewData.some((r) => r.isMCVendor) && (
+                  <span className='text-blue-600 ml-2 font-medium'>
+                    (MC {previewData.filter((r) => r.isMCVendor).length}{' '}
+                    รายการ
+                    {mcVendorImportRows.length > 0 && (
+                      <span className='text-green-600'>
+                        {' '}
+                        · เลือกนำเข้า {mcVendorImportRows.length} รายการ
+                      </span>
                     )}
                     )
                   </span>
@@ -834,6 +866,10 @@ const HtmlUploadForm = () => {
                   setSelectAll(false);
                   // Remove deleted rows from employee import selection
                   setEmployeeImportRows((prev) =>
+                    prev.filter((id) => !selectedRows.includes(id))
+                  );
+                  // Remove deleted rows from MC vendor import selection
+                  setMcVendorImportRows((prev) =>
                     prev.filter((id) => !selectedRows.includes(id))
                   );
                   setSaveSuccess(false); // Reset save status when deleting rows
@@ -890,7 +926,11 @@ const HtmlUploadForm = () => {
                     <TableRow
                       key={row.uniqueID}
                       className={`hover:bg-gray-50 ${
-                        row.isEmployee ? 'bg-yellow-50 border-l-4 border-orange-400' : ''
+                        row.isEmployee
+                          ? 'bg-yellow-50 border-l-4 border-orange-400'
+                          : row.isMCVendor
+                          ? 'bg-blue-50 border-l-4 border-blue-400'
+                          : ''
                       }`}>
                       <TableCell className='sticky left-0 bg-white z-10'>
                         <Checkbox
@@ -919,7 +959,9 @@ const HtmlUploadForm = () => {
                           {row.isEmployee && (
                             <div className='flex items-center gap-1.5'>
                               <Checkbox
-                                checked={employeeImportRows.includes(row.uniqueID)}
+                                checked={employeeImportRows.includes(
+                                  row.uniqueID
+                                )}
                                 onCheckedChange={(checked) => {
                                   if (checked) {
                                     setEmployeeImportRows((prev) => [
@@ -933,9 +975,38 @@ const HtmlUploadForm = () => {
                                   }
                                 }}
                               />
-                              <span className='text-xs text-gray-600'>นำเข้า</span>
+                              <span className='text-xs text-gray-600'>
+                                นำเข้า
+                              </span>
                               <span className='text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded font-medium'>
                                 👤 พนักงาน
+                              </span>
+                            </div>
+                          )}
+                          {row.isMCVendor && (
+                            <div className='flex items-center gap-1.5'>
+                              <Checkbox
+                                checked={mcVendorImportRows.includes(
+                                  row.uniqueID
+                                )}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    setMcVendorImportRows((prev) => [
+                                      ...prev,
+                                      row.uniqueID,
+                                    ]);
+                                  } else {
+                                    setMcVendorImportRows((prev) =>
+                                      prev.filter((id) => id !== row.uniqueID)
+                                    );
+                                  }
+                                }}
+                              />
+                              <span className='text-xs text-gray-600'>
+                                นำเข้า
+                              </span>
+                              <span className='text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-medium'>
+                                🏢 MC
                               </span>
                             </div>
                           )}
