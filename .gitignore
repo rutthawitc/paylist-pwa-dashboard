@@ -42,6 +42,7 @@ dev.db
 
 # Reference Docs
 docs/*
+exam_data/*
 
 # Claude AI
 .claude_config.json

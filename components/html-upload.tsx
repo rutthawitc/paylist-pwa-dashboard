@@ -91,7 +91,8 @@ function convertPaymentHTMLToData(htmlContent: string): PaymentRow[] {
     const text = lines[i].textContent?.trim() || '';
 
     // ตรวจหาบรรทัดที่มีข้อมูลรหัสเจ้าหนี้ (รูปแบบ ตัวเลข 6 หลัก หรือ EI0* ตามด้วยชื่อบริษัท)
-    if (/^(\d{6}|EI0\d+)\s+[หบน].*/.test(text)) {
+    // เปลี่ยนจากเดิม [หบน].* เป็น .*ช.แหล่งเงินทุนกปภ (ไม่จำกัดอักษรแรก รองรับเจ้าหนี้ขาจร เป็นต้น)
+    if (/^(\d{6}|EI0\d+)\s+.*ช\.แหล่งเงินทุนกปภ/.test(text)) {
       // เริ่มเก็บข้อมูลใหม่
       currentPayment = {};
 

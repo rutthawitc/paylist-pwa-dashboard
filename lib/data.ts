@@ -23,7 +23,13 @@ export const getPayData = async (options?: {
 }): Promise<PayData[]> => {
   try {
     // Get user's area from session
-    const session = await auth();
+    let session;
+    try {
+      session = await auth();
+    } catch (e) {
+      console.error('Auth error in getPayData:', e);
+      session = null;
+    }
     const userArea = session?.user?.area || '';
 
     // Add area filter if user has area
@@ -54,7 +60,13 @@ export const getPayData = async (options?: {
 export const getAllRecordCount = async (options?: { cache: 'no-store' }) => {
   try {
     // Get user's area from session
-    const session = await auth();
+    let session;
+    try {
+      session = await auth();
+    } catch (e) {
+      console.error('Auth error in getPayData:', e);
+      session = null;
+    }
     const userArea = session?.user?.area || '';
 
     // Add area filter if user has area
@@ -108,7 +120,13 @@ function getMonthName(date: Date): string {
 export const getPayListSummary = async (options?: { cache: 'no-store' }) => {
   try {
     // Get user's area from session
-    const session = await auth();
+    let session;
+    try {
+      session = await auth();
+    } catch (e) {
+      console.error('Auth error in getPayData:', e);
+      session = null;
+    }
     const userArea = session?.user?.area || '';
 
     // Add area filter if user has area
