@@ -291,6 +291,9 @@ const HtmlUploadForm = () => {
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
   const [selectAll, setSelectAll] = useState(false);
 
+  // State for employee import selection
+  const [employeeImportRows, setEmployeeImportRows] = useState<string[]>([]);
+
   // State for save and database operations
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -399,10 +402,18 @@ const HtmlUploadForm = () => {
   /**
    * Convert HTML PaymentRow format to XLS PaylistType format
    * Filters out employee records (EI0*) before sending to server
+   * UNLESS they are explicitly selected for import via employeeImportRows
    */
   const convertToPaylistFormat = (): PaylistType[] => {
     return previewData
-      .filter((row) => !row.isEmployee) // Filter out employee records on client side
+      .filter((row) => {
+        // If employee, only include if explicitly selected for import
+        if (row.isEmployee) {
+          return employeeImportRows.includes(row.uniqueID);
+        }
+        // Non-employee records are always included
+        return true;
+      })
       .map((row) => ({
         doc_no: row.คีย์ธนาคาร,
         trans_type: getPaymentMethodLabel(row.วิธีการจ่าย),
@@ -779,6 +790,7 @@ const HtmlUploadForm = () => {
                   setPreviewData([]);
                   setSelectedRows([]);
                   setSelectAll(false);
+                  setEmployeeImportRows([]);
                   setSaveSuccess(false);
                   setUploadProgress(0);
                   setError(null);
@@ -799,7 +811,11 @@ const HtmlUploadForm = () => {
                 ข้อมูลทั้งหมด: {previewData.length} รายการ
                 {previewData.some(r => r.isEmployee) && (
                   <span className='text-orange-600 ml-2 font-medium'>
-                    (พนักงาน {previewData.filter(r => r.isEmployee).length} รายการ - จะถูกกรองออก)
+                    (พนักงาน {previewData.filter(r => r.isEmployee).length} รายการ
+                    {employeeImportRows.length > 0 && (
+                      <span className='text-green-600'> · เลือกนำเข้า {employeeImportRows.length} รายการ</span>
+                    )}
+                    )
                   </span>
                 )}
                 {selectedRows.length > 0 &&
@@ -816,6 +832,10 @@ const HtmlUploadForm = () => {
                   setPreviewData(newPreviewData);
                   setSelectedRows([]);
                   setSelectAll(false);
+                  // Remove deleted rows from employee import selection
+                  setEmployeeImportRows((prev) =>
+                    prev.filter((id) => !selectedRows.includes(id))
+                  );
                   setSaveSuccess(false); // Reset save status when deleting rows
                   toast({
                     title: 'ลบรายการสำเร็จ',
@@ -839,8 +859,11 @@ const HtmlUploadForm = () => {
                         onCheckedChange={(checked) => {
                           setSelectAll(!!checked);
                           if (checked) {
+                            // Select only non-employee rows
                             setSelectedRows(
-                              previewData.map((row) => row.uniqueID)
+                              previewData
+                                .filter((row) => !row.isEmployee)
+                                .map((row) => row.uniqueID)
                             );
                           } else {
                             setSelectedRows([]);
@@ -891,12 +914,32 @@ const HtmlUploadForm = () => {
                         {getPaymentMethodLabel(row.วิธีการจ่าย)}
                       </TableCell>
                       <TableCell>
-                        {row.คีย์ธนาคาร}
-                        {row.isEmployee && (
-                          <span className='ml-2 text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded font-medium'>
-                            👤 พนักงาน
-                          </span>
-                        )}
+                        <div className='flex items-center gap-2'>
+                          <span>{row.คีย์ธนาคาร}</span>
+                          {row.isEmployee && (
+                            <div className='flex items-center gap-1.5'>
+                              <Checkbox
+                                checked={employeeImportRows.includes(row.uniqueID)}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    setEmployeeImportRows((prev) => [
+                                      ...prev,
+                                      row.uniqueID,
+                                    ]);
+                                  } else {
+                                    setEmployeeImportRows((prev) =>
+                                      prev.filter((id) => id !== row.uniqueID)
+                                    );
+                                  }
+                                }}
+                              />
+                              <span className='text-xs text-gray-600'>นำเข้า</span>
+                              <span className='text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded font-medium'>
+                                👤 พนักงาน
+                              </span>
+                            </div>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>{row.กำหนดชำระ}</TableCell>
                       <TableCell>{row.ชื่อผู้รับเงิน}</TableCell>
@@ -914,6 +957,10 @@ const HtmlUploadForm = () => {
                             );
                             setPreviewData(newPreviewData);
                             setSelectedRows((prev) =>
+                              prev.filter((id) => id !== row.uniqueID)
+                            );
+                            // Remove from employee import selection if it was selected
+                            setEmployeeImportRows((prev) =>
                               prev.filter((id) => id !== row.uniqueID)
                             );
                             setSaveSuccess(false); // Reset save status when deleting a row
