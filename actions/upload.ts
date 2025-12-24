@@ -6,13 +6,6 @@ import { auth } from '@/auth';
 import { createAuditLog } from '@/lib/audit-logger';
 import { revalidatePath } from 'next/cache';
 
-/**
- * Check if vendor code matches employee pattern (EI0*)
- */
-const isEmployeeVendorCode = (vendorCode: string): boolean => {
-  return /^EI0\d+$/i.test(vendorCode);
-};
-
 export const uploadPaylist = async (values: PaylistType[]) => {
   console.log(values);
   try {
@@ -24,33 +17,20 @@ export const uploadPaylist = async (values: PaylistType[]) => {
       throw new Error('User not authenticated');
     }
 
-    // EMPLOYEE FILTERING: แยกรายการพนักงานออก
-    const nonEmployeeRecords: PaylistType[] = [];
-    const filteredEmployees: PaylistType[] = [];
-
-    for (const item of values) {
-      if (isEmployeeVendorCode(item.doc_no)) {
-        filteredEmployees.push(item);
-      } else {
-        nonEmployeeRecords.push(item);
-      }
-    }
-
-    // บันทึก audit log พร้อมข้อมูลการกรอง
+    // บันทึก audit log
     await createAuditLog({
       userId,
       action: 'CREATE',
       resource: 'PayList',
       details: {
         total_count: values.length,
-        saved_count: nonEmployeeRecords.length,
-        filtered_employee_count: filteredEmployees.length,
+        saved_count: values.length,
         area: userArea,
       }
     });
 
-    // บันทึกเฉพาะรายการที่ไม่ใช่พนักงาน
-    for (const item of nonEmployeeRecords) {
+    // บันทึกข้อมูลทั้งหมดที่ส่งมา (frontend filter แล้ว)
+    for (const item of values) {
       await db.payList.create({
         data: {
           doc_no: item.doc_no.toString(),
@@ -69,13 +49,12 @@ export const uploadPaylist = async (values: PaylistType[]) => {
 
     console.log('Paylist uploaded successfully');
 
-    // Return success message with filter statistics
+    // Return success message
     return {
-      success: `นำเข้าสำเร็จ ${nonEmployeeRecords.length} รายการ${filteredEmployees.length > 0 ? ` (กรองพนักงาน ${filteredEmployees.length} รายการ)` : ''}`,
+      success: `นำเข้าสำเร็จ ${values.length} รายการ`,
       stats: {
         total: values.length,
-        saved: nonEmployeeRecords.length,
-        filtered: filteredEmployees.length,
+        saved: values.length,
       }
     };
   } catch (error) {
