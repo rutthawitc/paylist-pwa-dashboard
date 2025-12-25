@@ -1,5 +1,5 @@
 'use client';
-import { useState, DragEvent, useRef } from 'react';
+import { useState, useEffect, DragEvent, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -300,6 +300,9 @@ const HtmlUploadForm = () => {
   // State for MC vendor import selection
   const [mcVendorImportRows, setMcVendorImportRows] = useState<string[]>([]);
 
+  // State for valid MC codes from master file
+  const [validMCCodes, setValidMCCodes] = useState<Set<string>>(new Set());
+
   // State for save and database operations
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -352,6 +355,37 @@ const HtmlUploadForm = () => {
     'ศ.',
     'น.ส.',
   ];
+
+  /**
+   * Load valid MC codes from master file
+   * This function fetches the list of valid MC codes from /public/data/branches_mc.txt
+   * Falls back to regex pattern matching if the file cannot be loaded
+   */
+  const loadValidMCCodes = async () => {
+    try {
+      const response = await fetch('/data/branches_mc.txt');
+      if (!response.ok) {
+        console.warn('Cannot load MC master data, using pattern matching as fallback');
+        return;
+      }
+      const text = await response.text();
+      const codes = text
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line.length > 0);
+      setValidMCCodes(new Set(codes));
+      console.log(`Loaded ${codes.length} valid MC codes from master file`);
+    } catch (error) {
+      console.warn('Error loading MC master data:', error);
+    }
+  };
+
+  /**
+   * Load valid MC codes on component mount
+   */
+  useEffect(() => {
+    loadValidMCCodes();
+  }, []);
 
   /**
    * PDPA Check Handler
@@ -534,11 +568,15 @@ const HtmlUploadForm = () => {
       }
 
       // Mark employee records automatically using EI0* pattern
-      // Mark MC vendor records automatically using MC* pattern
+      // Mark MC vendor records using master data validation (with regex fallback)
       const paymentsWithEmployeeFlag = payments.map((row) => ({
         ...row,
-        isEmployee: /^EI0\d+$/i.test(row.รหัสเจ้าหนี้),
-        isMCVendor: /^MC\d+$/i.test(row.รหัสเจ้าหนี้),
+        isEmployee: row.รหัสเจ้าหนี้ ? /^EI0\d+$/i.test(row.รหัสเจ้าหนี้) : false,
+        isMCVendor: row.รหัสเจ้าหนี้
+          ? (validMCCodes.size > 0
+              ? validMCCodes.has(row.รหัสเจ้าหนี้.toUpperCase())
+              : /^MC\d+$/i.test(row.รหัสเจ้าหนี้)) // Fallback to pattern matching if master data not loaded
+          : false,
       }));
 
       setPreviewData(paymentsWithEmployeeFlag);
